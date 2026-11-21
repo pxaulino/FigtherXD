@@ -108,6 +108,9 @@ namespace UIComponents
     Vector2 MeasureTextModern(const char* text, float logicalSize, bool isTitle = false);
 
     // Dibuja el logo "FIGHTERXD" con Bungee, contorno grueso, degradado y haz de brillo
+    enum class ButtonState { Normal, Focused, Pressed, Disabled };
+    void DrawButtonSurface(Rectangle rect, ButtonState state);
+    void DrawKeycap(const char* key, float x, float y);
     void DrawLogoFighterXD(float centerX, float centerY);
 
     // Dibuja una columna de botones con cursor unico deslizante (ease-out) y feedback de 80 ms
@@ -118,9 +121,6 @@ namespace UIComponents
     // Dibuja un boton arcade individual (por ejemplo el boton BACK)
     bool DrawSingleArcadeButton(const char* label, float centerX, float centerY,
                                 float width, float height, bool selected, float dt);
-
-    // Dibuja la placa de identificacion biselada bajo PackMAN o Shadow
-    void DrawCharacterNameplate(const char* name, float centerX, float y, Color accentColor);
 
     // Dibuja la barra de ayuda inferior (28 px)
     void DrawHelpBar(const char* helpText, int screenWidth = UITheme::VIRTUAL_WIDTH,

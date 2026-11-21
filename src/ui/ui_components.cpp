@@ -120,129 +120,82 @@ namespace UIComponents
         }
     }
 
-    void DrawTextModern(const char* text, float x, float y, float logicalSize, Color color,
-                        bool centerHoriz, bool isTitle)
+    void DrawButtonSurface(Rectangle rect, ButtonState state)
     {
-        auto& fm = UITheme::FontManager::Instance();
-        Font font;
-        float spacing = 0.0f;
-
-        if (isTitle)
+        const bool focused = state == ButtonState::Focused || state == ButtonState::Pressed;
+        const bool disabled = state == ButtonState::Disabled;
+        const Color edge = focused ? UITheme::COLOR_ACCENT_MAIN : UITheme::EDGE;
+        const Color fill = disabled ? UITheme::PANEL : (focused ? UITheme::FOCUS : UITheme::SURFACE);
+        Rectangle shadow = rect;
+        shadow.y += 3;
+        DrawCutCornerRect(shadow, 6, Color{9, 6, 19, 210}, BLANK, 0);
+        DrawCutCornerRect(rect, 6, fill, edge, focused ? 2 : 1);
+        if (focused)
         {
-            font = (logicalSize >= UITheme::FONT_SIZE_LOGO) ? fm.GetLogoFont() : fm.GetTitleFont();
-            spacing = 1.0f; // Espaciado en titulos
+            DrawRectangleRec({rect.x + 5, rect.y + 7, 3, rect.height - 14}, UITheme::COLOR_ACCENT_CYAN);
+            if (state == ButtonState::Pressed)
+                DrawRectangleRec({rect.x + 10, rect.y + rect.height - 3, rect.width - 20, 2}, UITheme::COLOR_HIGHLIGHT);
         }
-        else if (logicalSize >= UITheme::FONT_SIZE_BUTTON)
-        {
-            font = fm.GetButtonFont();
-            spacing = 0.0f; // Kerning natural y compacto para lectura clara
-        }
-        else if (logicalSize >= UITheme::FONT_SIZE_BODY)
-        {
-            font = fm.GetBodyFont();
-            spacing = 0.0f;
-        }
-        else
-        {
-            font = fm.GetSmallFont();
-            spacing = 0.0f;
-        }
-
-        Vector2 size = MeasureTextEx(font, text, logicalSize, spacing);
-
-        float drawX = x;
-        if (centerHoriz)
-        {
-            drawX = std::floor(x - size.x * 0.5f);
-        }
-        const float drawY = std::floor(y);
-
-        // Sombra nitida (1 px en textos chicos/cuerpo para no emborronar trazos, 2 px en titulos grandes)
-        const float shadowOffset = (logicalSize >= 28.0f) ? 2.0f : 1.0f;
-        DrawTextEx(font, text, { drawX + shadowOffset, drawY + shadowOffset }, logicalSize, spacing, UITheme::COLOR_BG_BASE);
-        // Texto frontal
-        DrawTextEx(font, text, { drawX, drawY }, logicalSize, spacing, color);
     }
 
-    Vector2 MeasureTextModern(const char* text, float logicalSize, bool isTitle)
+    struct TextFace { Font font; float tracking; };
+
+    static TextFace Face(float size, bool display)
     {
         auto& fm = UITheme::FontManager::Instance();
-        Font font;
-        float spacing = 0.0f;
+        if (display) return {size >= UITheme::FONT_SIZE_LOGO ? fm.GetLogoFont() : fm.GetTitleFont(), 0.8f};
+        if (size >= UITheme::FONT_SIZE_BUTTON) return {fm.GetButtonFont(), 0.7f};
+        if (size >= UITheme::FONT_SIZE_BODY) return {fm.GetBodyFont(), 0.25f};
+        return {fm.GetSmallFont(), 0.3f};
+    }
 
-        if (isTitle)
-        {
-            font = (logicalSize >= UITheme::FONT_SIZE_LOGO) ? fm.GetLogoFont() : fm.GetTitleFont();
-            spacing = 1.0f;
-        }
-        else if (logicalSize >= UITheme::FONT_SIZE_BUTTON)
-        {
-            font = fm.GetButtonFont();
-            spacing = 0.0f;
-        }
-        else if (logicalSize >= UITheme::FONT_SIZE_BODY)
-        {
-            font = fm.GetBodyFont();
-            spacing = 0.0f;
-        }
-        else
-        {
-            font = fm.GetSmallFont();
-            spacing = 0.0f;
-        }
+    Vector2 MeasureTextModern(const char* text, float size, bool display)
+    {
+        const auto face = Face(size, display);
+        return MeasureTextEx(face.font, text, size, face.tracking);
+    }
 
-        return MeasureTextEx(font, text, logicalSize, spacing);
+    void DrawTextModern(const char* text, float x, float y, float size, Color color, bool centered, bool display)
+    {
+        const auto face = Face(size, display);
+        if (centered) x -= MeasureTextEx(face.font, text, size, face.tracking).x * 0.5f;
+        const float scale = UITheme::s_viewportScale;
+        x = std::round(x * scale) / scale;
+        y = std::round(y * scale) / scale;
+        const auto ink = [&](float dx, float dy, Color tint) {
+            DrawTextEx(face.font, text, {x + dx, y + dy}, size, face.tracking, tint);
+        };
+        const Color shadow = {8, 5, 18, color.a};
+        if (display)
+        {
+            ink(-1, 0, shadow);
+            ink(1, 0, shadow);
+            ink(0, -1, shadow);
+        }
+        ink(0, display ? 2 : 1, shadow);
+        ink(0, 0, color);
+    }
+
+    void DrawKeycap(const char* key, float x, float y)
+    {
+        const float size = UITheme::FONT_SIZE_SMALL;
+        const float width = std::max(32.0f, MeasureTextModern(key, size).x + 16);
+        DrawCutCornerRect({x, y, width, UITheme::KEY_HEIGHT}, 3, UITheme::SURFACE, UITheme::EDGE, 1);
+        DrawRectangleRec({x + 4, y + UITheme::KEY_HEIGHT - 2, width - 8, 1}, UITheme::COLOR_ACCENT_CYAN);
+        DrawTextModern(key, x + width / 2, y + 3, size, UITheme::COLOR_TEXT_MAIN, true, false);
     }
 
     void DrawLogoFighterXD(float centerX, float centerY)
     {
-        const char* const text = "FIGHTERXD";
-        const float fontSize = 48.0f; // Alto contenido <= 64 px
-        const float spacing = 3.0f;
-        auto& fm = UITheme::FontManager::Instance();
-        Font font = fm.GetLogoFont();
-
-        Vector2 size = MeasureTextEx(font, text, fontSize, spacing);
-        const float drawX = std::floor(centerX - size.x * 0.5f);
-        const float drawY = std::floor(centerY - size.y * 0.5f);
-
-        // 1. Contorno oscuro grueso (offsets en 8 direcciones de 3 px) en #0A0612
-        for (int ox = -3; ox <= 3; ox += 2)
-        {
-            for (int oy = -3; oy <= 3; oy += 2)
-            {
-                if (ox != 0 || oy != 0)
-                {
-                    DrawTextEx(font, text, { drawX + static_cast<float>(ox), drawY + static_cast<float>(oy) },
-                               fontSize, spacing, UITheme::COLOR_BG_BASE);
-                }
-            }
-        }
-
-        // 2. Capa base en Naranja (#FF5722)
-        DrawTextEx(font, text, { drawX, drawY + 2.0f }, fontSize, spacing, UITheme::COLOR_ORANGE);
-
-        // 3. Capa frontal superior en Amarillo Dorado (#FFC400)
-        DrawTextEx(font, text, { drawX, drawY }, fontSize, spacing, UITheme::COLOR_HIGHLIGHT);
-
-        // 4. Haz de brillo que recorre el logo cada 4 segundos
-        const float time = static_cast<float>(GetTime());
-        const float cycle = std::fmod(time, 4.0f);
-        if (cycle < 0.85f)
-        {
-            const float progress = cycle / 0.85f; // 0.0 a 1.0
-            const float shineX = drawX - 30.0f + progress * (size.x + 60.0f);
-            const float shineW = 35.0f;
-
-            // Franja diagonal de resplandor
-            const Color shineColor = ColorAlpha(WHITE, 0.40f * std::sin(progress * 3.14159f));
-            DrawTriangle({ shineX - 10.0f, drawY },
-                         { shineX + shineW - 10.0f, drawY },
-                         { shineX + shineW + 15.0f, drawY + size.y }, shineColor);
-            DrawTriangle({ shineX - 10.0f, drawY },
-                         { shineX + shineW + 15.0f, drawY + size.y },
-                         { shineX + 15.0f, drawY + size.y }, shineColor);
-        }
+        const float size = UITheme::FONT_SIZE_LOGO;
+        const float left = MeasureTextModern("FIGHTER", size, true).x;
+        const float right = MeasureTextModern("XD", size, true).x;
+        const float x = centerX - (left + right + 2) / 2;
+        const float y = centerY - size / 2;
+        DrawTextModern("FIGHTER", x, y, size, UITheme::COLOR_TEXT_MAIN, false, true);
+        DrawTextModern("XD", x + left + 2, y, size, UITheme::COLOR_HIGHLIGHT, false, true);
+        DrawRectangleRec({x, y + size, left, 2}, UITheme::COLOR_ACCENT_CYAN);
+        DrawRectangleRec({x + left + 2, y + size, right, 2}, UITheme::COLOR_ACCENT_MAIN);
     }
 
     int DrawSlidingButtonColumn(const char* const labels[], int count, float centerX, float startY,
@@ -311,9 +264,7 @@ namespace UIComponents
                 height
             };
 
-            const Color normalFill = Color{ UITheme::COLOR_BG_BASE.r, UITheme::COLOR_BG_BASE.g, UITheme::COLOR_BG_BASE.b, 220 };
-            const Color normalBorder = ColorAlpha(UITheme::COLOR_ACCENT_CYAN, 0.35f);
-            DrawCutCornerRect(btnRec, UITheme::BUTTON_CHAMFER, normalFill, normalBorder, 2.0f);
+            DrawButtonSurface(btnRec, ButtonState::Normal);
         }
 
         // 5. Dibujar el unico cursor de seleccion deslizante
@@ -330,9 +281,8 @@ namespace UIComponents
                           ColorAlpha(UITheme::COLOR_ACCENT_MAIN, 0.15f),
                           ColorAlpha(UITheme::COLOR_ACCENT_MAIN, 0.45f), 2.0f);
 
-        // Caja de seleccion rellena en #FF2E63 con borde cian
-        DrawCutCornerRect(highlightRec, UITheme::BUTTON_CHAMFER,
-                          UITheme::COLOR_ACCENT_MAIN, UITheme::COLOR_ACCENT_CYAN, 3.0f);
+        DrawButtonSurface(highlightRec, state.pressedIndex == selectedIndex && state.pressTimer > 0
+                          ? ButtonState::Pressed : ButtonState::Focused);
 
         // Flechas ▶ y ◀ a 16 px de los bordes del cursor con pulso suave
         const float pulse = std::sin(static_cast<float>(GetTime()) * 8.0f) * 2.5f;
@@ -372,7 +322,7 @@ namespace UIComponents
             const float currentFontSize = isPressed ? (UITheme::FONT_SIZE_BUTTON * 0.97f) : UITheme::FONT_SIZE_BUTTON;
 
             const float textY = std::floor(btnY - currentFontSize * 0.5f);
-            const Color textColor = (i == selectedIndex) ? UITheme::COLOR_TEXT_MAIN : UITheme::COLOR_TEXT_MAIN;
+            const Color textColor = isPressed ? UITheme::COLOR_HIGHLIGHT : UITheme::COLOR_TEXT_MAIN;
 
             DrawTextModern(labels[i], centerX, textY, currentFontSize, textColor, true, false);
         }
@@ -401,19 +351,9 @@ namespace UIComponents
         const bool hovered = CheckCollisionPointRec(vMouse, btnRec);
         const bool active = selected;
 
-        const Color fill = active ? UITheme::COLOR_ACCENT_MAIN : (hovered ? ColorAlpha(UITheme::COLOR_BG_BASE, 0.98f) : ColorAlpha(UITheme::COLOR_BG_BASE, 0.88f));
-        const Color border = active ? UITheme::COLOR_ACCENT_CYAN : (hovered ? UITheme::COLOR_ACCENT_CYAN : ColorAlpha(UITheme::COLOR_ACCENT_CYAN, 0.40f));
-        const float borderWidth = active ? 3.0f : (hovered ? 2.5f : 2.0f);
-
-        if (active)
-        {
-            DrawCutCornerRect({ btnRec.x - 3.0f, btnRec.y - 3.0f, btnRec.width + 6.0f, btnRec.height + 6.0f },
-                              UITheme::BUTTON_CHAMFER + 2.0f,
-                              ColorAlpha(UITheme::COLOR_ACCENT_MAIN, 0.15f),
-                              ColorAlpha(UITheme::COLOR_ACCENT_MAIN, 0.45f), 2.0f);
-        }
-
-        DrawCutCornerRect(btnRec, UITheme::BUTTON_CHAMFER, fill, border, borderWidth);
+        const bool pressed = hovered && IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+        DrawButtonSurface(btnRec, pressed ? ButtonState::Pressed :
+                          (active || hovered ? ButtonState::Focused : ButtonState::Normal));
 
         if (active)
         {
@@ -439,25 +379,6 @@ namespace UIComponents
         return clicked;
     }
 
-    void DrawCharacterNameplate(const char* name, float centerX, float y, Color accentColor)
-    {
-        const float plateWidth = UITheme::NAMEPLATE_WIDTH;
-        const float plateHeight = UITheme::NAMEPLATE_HEIGHT;
-        const Rectangle rect = {
-            std::floor(centerX - plateWidth * 0.5f),
-            std::floor(y),
-            plateWidth,
-            plateHeight
-        };
-
-        const Color bgColor = ColorAlpha(UITheme::COLOR_BG_BASE, 0.92f);
-        DrawCutCornerRect(rect, 6.0f, bgColor, accentColor, 2.0f);
-
-        const float textY = std::floor(y + (plateHeight - UITheme::FONT_SIZE_BODY) * 0.5f);
-        // Texto blanco de alto contraste sobre fondo oscuro, con reborde acentuado
-        DrawTextModern(name, centerX, textY, UITheme::FONT_SIZE_BODY, UITheme::COLOR_TEXT_MAIN, true, false);
-    }
-
     void DrawHelpBar(const char* helpText, int screenWidth, int screenHeight)
     {
         const float barH = UITheme::HELPBAR_HEIGHT;
@@ -466,7 +387,45 @@ namespace UIComponents
         DrawRectangle(0, static_cast<int>(barY), screenWidth, static_cast<int>(barH), ColorAlpha(UITheme::COLOR_BG_BASE, 0.94f));
         DrawLine(0, static_cast<int>(barY), screenWidth, static_cast<int>(barY), ColorAlpha(UITheme::COLOR_ACCENT_CYAN, 0.45f));
 
-        const float textY = std::floor(barY + (barH - UITheme::FONT_SIZE_SMALL) * 0.5f);
-        DrawTextModern(helpText, static_cast<float>(screenWidth) * 0.5f, textY, UITheme::FONT_SIZE_SMALL, Color{ 255, 255, 255, 255 }, true, false);
+        struct Shortcut { std::string key, action; float keyWidth, width; };
+        static std::string hint;
+        static std::vector<Shortcut> shortcuts;
+        static float total = 0;
+        if (hint != helpText)
+        {
+            hint = helpText;
+            shortcuts.clear();
+            total = 0;
+            size_t pos = 0;
+            while ((pos = hint.find('[', pos)) != std::string::npos)
+            {
+                const auto close = hint.find(']', pos);
+                if (close == std::string::npos) break;
+                const auto next = hint.find('[', close + 1);
+                const std::string key = hint.substr(pos + 1, close - pos - 1);
+                std::string action = hint.substr(close + 1, next - close - 1);
+                action.erase(0, action.find_first_not_of(' '));
+                action.erase(action.find_last_not_of(' ') + 1);
+                const float keyWidth = std::max(32.0f, MeasureTextModern(key.c_str(), UITheme::FONT_SIZE_SMALL).x + 16);
+                const float width = keyWidth + 6 + MeasureTextModern(action.c_str(), UITheme::FONT_SIZE_SMALL).x;
+                shortcuts.push_back({key, action, keyWidth, width});
+                total += width + 24;
+                pos = close + 1;
+            }
+            total -= 24;
+        }
+        if (shortcuts.empty() || total > screenWidth - 24)
+        {
+            DrawTextModern(helpText, screenWidth / 2.0f, barY + 7, UITheme::FONT_SIZE_SMALL, UITheme::COLOR_TEXT_MAIN, true, false);
+            return;
+        }
+        float x = (screenWidth - total) / 2;
+        for (const auto& shortcut : shortcuts)
+        {
+            DrawKeycap(shortcut.key.c_str(), x, barY + 4);
+            DrawTextModern(shortcut.action.c_str(), x + shortcut.keyWidth + 6, barY + 8,
+                           UITheme::FONT_SIZE_SMALL, UITheme::COLOR_TEXT_MAIN, false, false);
+            x += shortcut.width + 24;
+        }
     }
 }

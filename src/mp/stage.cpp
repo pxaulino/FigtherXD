@@ -100,6 +100,12 @@ CollisionResult ResolveStageCollision(Stage& stage, Fighter& fighter, Vector2 pr
         }
     }
 
+    // Only walking off a surface grants grace; jumping and dropping already clear grounded.
+    if (wasGrounded && !fighter.grounded &&
+        (fighter.state == ActionState::Wait || (fighter.state >= ActionState::WalkSlow && fighter.state <= ActionState::Turn)))
+        fighter.coyoteFrames = 5;
+    if (fighter.grounded) fighter.coyoteFrames = 0;
+
     if (!fighter.grounded && !onLedge && fighter.hitstunFrames <= 0 && fighter.ledgeRegrabTimer <= 0 &&
         fighter.velocity.y >= -160.0F)
     {

@@ -10,7 +10,6 @@ enum class LargeButtonKind
     Options,
     Quit,
     Resume,
-    NewGame,
     Menu,
     Back,
     Count

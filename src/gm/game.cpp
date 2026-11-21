@@ -5,12 +5,16 @@
 #endif
 
 #include "win32_icon.hpp"
+#include "if/character_select.hpp"
 #include <algorithm>
 #include <cmath>
 
 namespace
 {
 constexpr float kFixedDt = 1.0F / 60.0F;
+
+enum class PauseOption { Resume, Menu, Options, ChangeFighter, Count };
+constexpr int kPauseOptionCount = static_cast<int>(PauseOption::Count);
 
 bool PadPressed(int gamepad, int button)
 {
@@ -32,6 +36,29 @@ void ResumeGame(GameContext& ctx)
     ctx.scene = SceneState::InGame;
     ctx.p1Input = PlayerInputState{};
     ctx.accumulator = 0.0;
+}
+
+void ActivatePauseOption(GameContext& ctx)
+{
+    switch (static_cast<PauseOption>(ctx.pauseMenuSelection))
+    {
+    case PauseOption::Resume:
+        ResumeGame(ctx);
+        break;
+    case PauseOption::Menu:
+        UIComponents::g_transition.Start(static_cast<int>(SceneState::MainMenu));
+        break;
+    case PauseOption::Options:
+        ctx.optionsReturnScene = SceneState::Paused;
+        ctx.optionsSelection = 5;
+        UIComponents::g_transition.Start(static_cast<int>(SceneState::Options));
+        break;
+    case PauseOption::ChangeFighter:
+        OpenCharacterSelect(ctx);
+        break;
+    case PauseOption::Count:
+        break;
+    }
 }
 
 void CycleOpponentMode(GameContext& ctx)
@@ -187,11 +214,11 @@ FighterInput BuildPlayer1Input(PlayerInputState& s, const Fighter& fighter)
     input.attackDown = IsControlDown(ControlAction::LightAttack) || IsControlDown(ControlAction::HeavyAttack) || PadDown(0, GAMEPAD_BUTTON_RIGHT_FACE_LEFT) ||
                        PadDown(0, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT);
     input.specialPressed = s.specialPressed;
-    input.shieldDown = IsControlDown(ControlAction::Dodge) || PadDown(0, GAMEPAD_BUTTON_LEFT_TRIGGER_1);
+    input.shieldDown = IsControlDown(ControlAction::Dodge) || PadDown(0, GAMEPAD_BUTTON_RIGHT_TRIGGER_1) || PadDown(0, GAMEPAD_BUTTON_LEFT_TRIGGER_1);
     input.airDodgePressed = s.shieldPressed;
 
     // --- Seleccion contextual de ataque ---
-    if (s.heavyPressed || IsControlDown(ControlAction::HeavyAttack)) input.attackKind = AttackKind::ForwardSmash;
+    if (fighter.grounded && s.heavyPressed) input.attackKind = AttackKind::ForwardSmash;
     else if (IsAerialState(state) || !fighter.grounded)
     {
         if (input.stickY < -0.45F) input.attackKind = AttackKind::UpAir;
@@ -383,16 +410,14 @@ void DrawFighterSprite(const SpriteRenderer& sprites, const Fighter& fighter)
     const EnvironmentCollisionBox ecb = BuildECB(fighter);
     const Color fallback = fighter.playerIndex == 0 ? Color{ 70, 155, 250, 255 } : Color{ 230, 90, 130, 255 };
     const bool blink = fighter.invulnerabilityFrames > 0 && (fighter.invulnerabilityFrames / 5) % 2 == 0;
-    if (blink)
-    {
-        DrawRectangleRec(hurtbox, ColorAlpha(fallback, 0.45F));
-    }
-    else if (!sprites.Draw(fighter.playerIndex, AnimationFor(fighter.state), fighter.stateFrame,
-                           AnimationLoops(fighter.state), fighter.facingDir, hurtbox,
-                           fighter.position.y + ecb.bottom.y))
-    {
+    const Color tint = blink ? ColorAlpha(WHITE, 0.46f) : WHITE;
+    if (!sprites.Draw(static_cast<int>(fighter.character), AnimationFor(fighter.state), fighter.stateFrame,
+                      AnimationLoops(fighter.state), fighter.facingDir, hurtbox,
+                      fighter.position.y + ecb.bottom.y, tint))
         sprites.DrawFallback(hurtbox, fighter.position.y + ecb.bottom.y, fallback);
-    }
+    const float x = fighter.position.x;
+    const float y = hurtbox.y - 6;
+    DrawTriangle({x - 5, y - 5}, {x, y}, {x + 5, y - 5}, fighter.cpu ? UITheme::P2_COLOR : UITheme::P1_COLOR);
 
     if (fighter.shielding)
     {
@@ -422,7 +447,12 @@ void HandleKnockout(Stage& stage, Fighter& fighter, float spawnX, int facing)
     }
     const int player = fighter.playerIndex;
     const FighterAttributes attributes = fighter.attributes;
+    const auto character = fighter.character;
+    const bool cpu = fighter.cpu, di = fighter.cpuDiShield;
     ResetFighter(fighter, spawnX, stage.groundY, facing, player);
+    fighter.character = character;
+    fighter.cpu = cpu;
+    fighter.cpuDiShield = di;
     fighter.attributes = attributes;
     fighter.stocks = nextStocks;
     fighter.invulnerabilityFrames = 120;
@@ -468,6 +498,10 @@ void ResetMatch(GameContext& ctx)
 {
     ResetFighter(ctx.fighters[0], 340.0F, ctx.stage.groundY, 1, 0);
     ResetFighter(ctx.fighters[1], 620.0F, ctx.stage.groundY, -1, 1);
+    ctx.fighters[0].character = ctx.selected;
+    ctx.fighters[1].character = Character::Shadow;
+    ctx.stockFlash = {};
+    InitializeCamera(ctx.camera);
     ctx.fighters[1].cpu = true;
     ctx.fighters[1].cpuDiShield = (ctx.opponentMode == OpponentMode::DummyDiShield);
     ctx.stage.ledgeOccupants = { -1, -1 };
@@ -484,16 +518,22 @@ void ShutdownGame(GameContext& ctx)
 void UpdateGame(GameContext& ctx)
 {
     ++ctx.menuAnimFrame;
+    if (ctx.scene == SceneState::CharacterSelect)
+    {
+        UpdateCharacterSelect(ctx);
+        return;
+    }
+    if (UIComponents::g_transition.active && UIComponents::g_transition.fadingOut) return;
 
     // --- ESTADO: MENU PRINCIPAL ---
     if (ctx.scene == SceneState::MainMenu)
     {
-        if (IsKeyPressed(KEY_UP))
+        if (IsKeyPressed(KEY_UP) || PadPressed(0,GAMEPAD_BUTTON_LEFT_FACE_UP))
         {
             ctx.mainMenuSelection = (ctx.mainMenuSelection + 3) % 4;
             UITheme::AudioManager::Instance().PlayCursor();
         }
-        if (IsKeyPressed(KEY_DOWN))
+        if (IsKeyPressed(KEY_DOWN) || PadPressed(0,GAMEPAD_BUTTON_LEFT_FACE_DOWN))
         {
             ctx.mainMenuSelection = (ctx.mainMenuSelection + 1) % 4;
             UITheme::AudioManager::Instance().PlayCursor();
@@ -506,16 +546,13 @@ void UpdateGame(GameContext& ctx)
             return;
         }
 
-        const bool confirmKey = IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_X) || IsKeyPressed(KEY_SPACE);
+        const bool confirmKey = PadPressed(0,GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_X) || IsKeyPressed(KEY_SPACE);
         if (confirmKey)
         {
             const int choice = ctx.mainMenuSelection;
             if (choice == 0) // PLAY
             {
-                UITheme::AudioManager::Instance().PlayStart();
-                UIComponents::g_transition.Start(static_cast<int>(SceneState::InGame), true); // Juice: flash blanco + screen shake
-                ResetMatch(ctx);
-                ResumeGame(ctx);
+                OpenCharacterSelect(ctx);
             }
             else if (choice == 1) // CONTROLS
             {
@@ -548,7 +585,7 @@ void UpdateGame(GameContext& ctx)
         const Rectangle backRec = { 480.0F - backBtnW * 0.5F, backBtnY - backBtnH * 0.5F, backBtnW, backBtnH };
         const bool mouseOverBack = CheckCollisionPointRec(UITheme::GetVirtualMousePosition(), backRec);
         const bool backClick = mouseOverBack && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
-        const bool confirmKey = IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_X) || IsKeyPressed(KEY_SPACE);
+        const bool confirmKey = PadPressed(0,GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_X) || IsKeyPressed(KEY_SPACE);
 
         if (backKey || backClick || (mouseOverBack && confirmKey))
         {
@@ -669,11 +706,13 @@ void UpdateGame(GameContext& ctx)
             {
                 if (IsKeyPressed(KEY_ENTER))
                 {
-                    ControlSettings& settings = GetControlSettings();
-                    const int action = ctx.controlsCaptureAction;
-                    const int other = ctx.controlsConflictAction;
-                    std::swap(settings.keys[static_cast<std::size_t>(action)], settings.keys[static_cast<std::size_t>(other)]);
-                    settings.preset = MovementPreset::Custom;
+                    if (!SwapControlBindings(static_cast<ControlAction>(ctx.controlsCaptureAction),
+                                             static_cast<ControlAction>(ctx.controlsConflictAction)))
+                    {
+                        ctx.controlsConflictAction = -1;
+                        ctx.controlsMessage = isEs ? "TECLA COMPARTIDA. ELIGE OTRA TECLA." : "SHARED KEY. CHOOSE ANOTHER KEY.";
+                        return;
+                    }
                     ctx.controlsMessage = isEs ? "ASIGNACIONES INTERCAMBIADAS" : "BINDINGS SWAPPED";
                     ctx.controlsMessageTimer = 2.0F;
                     ctx.controlsCapturing = false;
@@ -854,43 +893,25 @@ void UpdateGame(GameContext& ctx)
             return;
         }
 
-        if (IsKeyPressed(KEY_UP))
+        if (IsKeyPressed(KEY_UP) || PadPressed(0,GAMEPAD_BUTTON_LEFT_FACE_UP))
         {
-            ctx.pauseMenuSelection = (ctx.pauseMenuSelection + 3) % 4;
+            ctx.pauseMenuSelection = (ctx.pauseMenuSelection + kPauseOptionCount - 1) % kPauseOptionCount;
             UITheme::AudioManager::Instance().PlayCursor();
         }
-        if (IsKeyPressed(KEY_DOWN))
+        if (IsKeyPressed(KEY_DOWN) || PadPressed(0,GAMEPAD_BUTTON_LEFT_FACE_DOWN))
         {
-            ctx.pauseMenuSelection = (ctx.pauseMenuSelection + 1) % 4;
+            ctx.pauseMenuSelection = (ctx.pauseMenuSelection + 1) % kPauseOptionCount;
             UITheme::AudioManager::Instance().PlayCursor();
         }
 
-        const bool confirmKey = IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_X) || IsKeyPressed(KEY_SPACE);
+        const bool confirmKey = PadPressed(0,GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_X) || IsKeyPressed(KEY_SPACE);
         if (confirmKey)
         {
-            if (ctx.pauseMenuSelection == 0) // RESUME
-            {
-                UITheme::AudioManager::Instance().PlayCancel();
-                ResumeGame(ctx);
-            }
-            else if (ctx.pauseMenuSelection == 1) // NEW GAME
-            {
-                UITheme::AudioManager::Instance().PlayStart();
-                ResetMatch(ctx);
-                ResumeGame(ctx);
-            }
-            else if (ctx.pauseMenuSelection == 2) // MENU
-            {
-                UITheme::AudioManager::Instance().PlayConfirm();
-                UIComponents::g_transition.Start(static_cast<int>(SceneState::MainMenu));
-            }
-            else if (ctx.pauseMenuSelection == 3) // OPTIONS
-            {
-                UITheme::AudioManager::Instance().PlayConfirm();
-                ctx.optionsReturnScene = SceneState::Paused;
-                ctx.optionsSelection = 5;
-                UIComponents::g_transition.Start(static_cast<int>(SceneState::Options));
-            }
+            auto& audio = UITheme::AudioManager::Instance();
+            if (ctx.pauseMenuSelection == static_cast<int>(PauseOption::Resume)) audio.PlayCancel();
+            else if (ctx.pauseMenuSelection == static_cast<int>(PauseOption::Menu) ||
+                     ctx.pauseMenuSelection == static_cast<int>(PauseOption::Options)) audio.PlayConfirm();
+            ActivatePauseOption(ctx);
         }
         return;
     }
@@ -898,24 +919,28 @@ void UpdateGame(GameContext& ctx)
     // --- ESTADO: COMBATE EN VIVO (IN_GAME) ---
     // Pausar con tecla o haciendo clic en el icono de pausa en la esquina superior derecha
     const Rectangle pauseIconRect{ 914.0F, 12.0F, 34.0F, 34.0F };
-    const bool clickPauseIcon = CheckCollisionPointRec(GetMousePosition(), pauseIconRect) &&
+    const bool clickPauseIcon = CheckCollisionPointRec(UITheme::GetVirtualMousePosition(), pauseIconRect) &&
                                 IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
 
     if (IsKeyPressed(KEY_ESCAPE) || IsControlPressed(ControlAction::Pause) || clickPauseIcon)
     {
         ctx.scene = SceneState::Paused;
-        ctx.pauseMenuSelection = 0;
+        ctx.pauseMenuSelection = static_cast<int>(PauseOption::Resume);
+        ctx.pauseEntranceTimer = 0.0F;
+        ctx.pauseMenuSliding = {};
+        ctx.pauseMenuSliding.lastMousePos = GetMousePosition();
         return;
     }
 
-    if (IsKeyPressed(KEY_F1)) ctx.debugMode = !ctx.debugMode;
-    if (IsKeyPressed(KEY_F2)) CycleOpponentMode(ctx);
-    if (IsKeyPressed(KEY_R)) ResetMatch(ctx);
+    if (IsKeyPressed(KEY_F1) && !HasControlBinding(KEY_F1)) ctx.debugMode = !ctx.debugMode;
+    if (IsKeyPressed(KEY_F2) && !HasControlBinding(KEY_F2)) CycleOpponentMode(ctx);
+    if (IsKeyPressed(KEY_R) && !HasControlBinding(KEY_R)) ResetMatch(ctx);
 
     // Acumula los eventos de teclado hasta que un tick fisico real de 60 Hz los consuma
     PollPlayer1Events(ctx.p1Input);
 
     const float frameTime = std::min(GetFrameTime(), 0.25F);
+    for (float& flash : ctx.stockFlash) flash = std::max(0.0f, flash - frameTime);
     ctx.accumulator += static_cast<double>(frameTime);
 
     while (ctx.accumulator >= static_cast<double>(kFixedDt))
@@ -938,6 +963,7 @@ void UpdateGame(GameContext& ctx)
             const CollisionResult collision = ResolveStageCollision(ctx.stage, fighter, fighter.previousPosition);
             if (collision == CollisionResult::KnockedOut)
             {
+                ctx.stockFlash[player] = 0.35f;
                 HandleKnockout(ctx.stage, fighter, player == 0 ? 340.0F : 620.0F, player == 0 ? 1 : -1);
             }
         }
@@ -954,32 +980,36 @@ void UpdateGame(GameContext& ctx)
     }
 }
 
-void RenderGame(const GameContext& ctx)
+void RenderWorld(const GameContext& ctx)
 {
-    const float dt = GetFrameTime();
-    // Nota: BeginDrawing / EndDrawing se gestionan en main.cpp para RenderTexture2D virtual
-
-    // 1. Render de Combate (tanto en IN_GAME como en fondo de PAUSED)
-    if (ctx.scene == SceneState::InGame || ctx.scene == SceneState::Paused)
+    ClearBackground(Color{ 15, 19, 31, 255 });
+    Camera2D view = ctx.camera.camera;
+    constexpr float fieldHeight = UITheme::VIRTUAL_HEIGHT - HudBandHeight;
+    view.offset.y = fieldHeight * 0.5f;
+    view.zoom *= fieldHeight / UITheme::VIRTUAL_HEIGHT;
+    BeginMode2D(view);
+    DrawStage(ctx.stage);
+    for (const Fighter& fighter : ctx.fighters)
     {
-        ClearBackground(Color{ 15, 19, 31, 255 });
-        const_cast<GameContext&>(ctx).camera.camera.offset = Vector2{ 480.0F, 270.0F }; // Centro exacto del lienzo virtual 960x540
-        BeginMode2D(ctx.camera.camera);
-        DrawStage(ctx.stage);
+        DrawFighterSprite(ctx.sprites, fighter);
+    }
+    if (ctx.debugMode)
+    {
         for (const Fighter& fighter : ctx.fighters)
         {
-            DrawFighterSprite(ctx.sprites, fighter);
+            DrawDebugFighter(fighter);
         }
-        if (ctx.debugMode)
-        {
-            for (const Fighter& fighter : ctx.fighters)
-            {
-                DrawDebugFighter(fighter);
-            }
-        }
-        EndMode2D();
+    }
+    EndMode2D();
+}
 
-        DrawHud(ctx.fighters, ctx.opponentMode, ctx.debugMode, static_cast<float>(GetFPS()));
+void RenderInterface(const GameContext& ctx)
+{
+    const float dt = GetFrameTime();
+    if (ctx.scene == SceneState::CharacterSelect) { DrawCharacterSelect(ctx); return; }
+    if (ctx.scene == SceneState::InGame || ctx.scene == SceneState::Paused)
+    {
+        DrawHud(ctx.sprites, ctx.stockFlash, ctx.fighters, ctx.opponentMode, ctx.debugMode, static_cast<float>(GetFPS()));
 
         // Icono cuadrado discreto de PAUSE en la esquina superior derecha
         const Rectangle pauseIconRect{ 914.0F, 12.0F, 34.0F, 34.0F };
@@ -1002,7 +1032,7 @@ void RenderGame(const GameContext& ctx)
     if (ctx.scene == SceneState::Paused)
     {
         // Overlay #0A0612 al 75% sobre el juego congelado + vineta suave
-        DrawRectangle(0, 0, UITheme::VIRTUAL_WIDTH, UITheme::VIRTUAL_HEIGHT, ColorAlpha(UITheme::COLOR_BG_BASE, 0.75F));
+        DrawRectangle(0, 0, UITheme::VIRTUAL_WIDTH, UITheme::VIRTUAL_HEIGHT, ColorAlpha(UITheme::COLOR_BG_BASE, 0.64F));
         DrawRectangleGradientH(0, 0, 140, UITheme::VIRTUAL_HEIGHT, ColorAlpha(UITheme::COLOR_BG_BASE, 0.85F), ColorAlpha(UITheme::COLOR_BG_BASE, 0.0F));
         DrawRectangleGradientH(UITheme::VIRTUAL_WIDTH - 140, 0, 140, UITheme::VIRTUAL_HEIGHT, ColorAlpha(UITheme::COLOR_BG_BASE, 0.0F), ColorAlpha(UITheme::COLOR_BG_BASE, 0.85F));
 
@@ -1011,107 +1041,63 @@ void RenderGame(const GameContext& ctx)
         const float modalScale = 0.92F + 0.08F * progress;
         const float modalAlpha = progress;
 
-        const float boxW = 320.0F * modalScale;
-        const float boxH = 286.0F * modalScale;
+        constexpr float headerHeight = 80.0F;
+        constexpr float buttonHeight = 38.0F;
+        constexpr float buttonGap = 10.0F;
+        constexpr float bottomPadding = 18.0F;
+        const float boxW = 356.0F * modalScale;
+        const float boxH = (headerHeight + kPauseOptionCount * buttonHeight +
+                            (kPauseOptionCount - 1) * buttonGap + bottomPadding) * modalScale;
         const float boxX = 480.0F - boxW * 0.5F;
         const float boxY = 270.0F - boxH * 0.5F;
 
-        // Panel centrado de 320x240 px con borde cian y esquinas cortadas
-        const Color panelFill = ColorAlpha(UITheme::COLOR_BG_BASE, 0.95F * modalAlpha);
+        // Panel centrado con borde cian y esquinas cortadas
+        const Color panelFill = ColorAlpha(UITheme::COLOR_BG_BASE, 0.98F * modalAlpha);
         const Color panelBorder = ColorAlpha(UITheme::COLOR_ACCENT_CYAN, modalAlpha);
         UIComponents::DrawCutCornerRect({ boxX, boxY, boxW, boxH }, 10.0F, panelFill, panelBorder, 2.0F);
 
+        DrawRectangleRec({boxX + 16, boxY, boxW - 32, 3}, UITheme::COLOR_ACCENT_MAIN);
+        DrawRectangleRec({boxX + 20, boxY + 57 * modalScale, boxW - 40, 1}, UITheme::EDGE);
         // Titulo de pausa
         const char* const pausedTitle = (UITheme::s_language == UITheme::Language::Spanish) ? "PAUSA" : "PAUSED";
         UIComponents::DrawTextModern(pausedTitle, 480.0F, boxY + 16.0F * modalScale,
                                      UITheme::FONT_SIZE_TITLE * modalScale, UITheme::COLOR_ACCENT_CYAN, true, true);
 
-        // 3 Botones: REANUDAR, NUEVA PARTIDA, MENU
-        const char* const pauseLabelsEs[4] = { "REANUDAR", "NUEVA PARTIDA", "MENU", "OPCIONES" };
-        const char* const pauseLabelsEn[4] = { "RESUME", "NEW GAME", "MENU", "OPTIONS" };
-        const char* const* const pauseLabels = (UITheme::s_language == UITheme::Language::Spanish) ? pauseLabelsEs : pauseLabelsEn;
-
-        const float btnW = 240.0F * modalScale;
-        const float btnH = 38.0F * modalScale;
-        const float btnStartY = boxY + 76.0F * modalScale;
-        const float btnSpacing = 48.0F * modalScale;
-
+        static constexpr const char* pauseLabelsEs[kPauseOptionCount] = { "REANUDAR", "MENÚ", "OPCIONES", "CAMBIAR LUCHADOR" };
+        static constexpr const char* pauseLabelsEn[kPauseOptionCount] = { "RESUME", "MENU", "OPTIONS", "CHANGE FIGHTER" };
+        const auto& pauseLabels = UITheme::s_language == UITheme::Language::Spanish ? pauseLabelsEs : pauseLabelsEn;
+        GameContext& game = const_cast<GameContext&>(ctx);
         const int clicked = UIComponents::DrawSlidingButtonColumn(
-            pauseLabels, 4, 480.0F, btnStartY, btnW, btnH, btnSpacing,
-            const_cast<GameContext&>(ctx).pauseMenuSelection, dt, const_cast<GameContext&>(ctx).pauseMenuSliding);
+            pauseLabels, kPauseOptionCount, 480.0F, boxY + (headerHeight + buttonHeight / 2) * modalScale,
+            276.0F * modalScale, buttonHeight * modalScale, (buttonHeight + buttonGap) * modalScale,
+            game.pauseMenuSelection, dt, game.pauseMenuSliding);
 
-        if (clicked >= 0)
+        if (clicked >= 0 && !(UIComponents::g_transition.active && UIComponents::g_transition.fadingOut))
         {
-            const_cast<GameContext&>(ctx).pauseMenuSelection = clicked;
-            if (clicked == 0) // REANUDAR / RESUME
-            {
-                ResumeGame(const_cast<GameContext&>(ctx));
-            }
-            else if (clicked == 1) // NUEVA PARTIDA / NEW GAME
-            {
-                ResetMatch(const_cast<GameContext&>(ctx));
-                ResumeGame(const_cast<GameContext&>(ctx));
-            }
-            else if (clicked == 2) // MENU
-            {
-                UIComponents::g_transition.Start(static_cast<int>(SceneState::MainMenu));
-            }
-            else if (clicked == 3) // OPTIONS
-            {
-                GameContext& mutableCtx = const_cast<GameContext&>(ctx);
-                mutableCtx.optionsReturnScene = SceneState::Paused;
-                mutableCtx.optionsSelection = 5;
-                UIComponents::g_transition.Start(static_cast<int>(SceneState::Options));
-            }
+            game.pauseMenuSelection = clicked;
+            ActivatePauseOption(game);
         }
     }
 
     // 3. Pantalla del Menu Principal (MAIN_MENU)
     if (ctx.scene == SceneState::MainMenu)
     {
-        ClearBackground(BLANK); // El fondo full-bleed ya se dibujo en main.cpp
 
         // Titulo del juego: Logo "FIGHTERXD" con contorno grueso, degradado y brillo
-        UIComponents::DrawLogoFighterXD(480.0f, 66.0f);
+        UIComponents::DrawLogoFighterXD(480.0f, 86.0f);
 
-        // Subtitulo oficial en #F5F3FF ("MOTOR DE PELEA PIXEL" / "PIXEL FIGHTING ENGINE")
-        UIComponents::DrawTextModern(UITheme::GetSubtitleText(), 480.0f, 106.0f, UITheme::FONT_SIZE_BODY, UITheme::COLOR_TEXT_MAIN, true, false);
-
-        // --- Sprites de los luchadores a 220 px de los bordes con auras de energia ---
-        const float timePulse = std::sin(static_cast<float>(GetTime()) * 4.0f) * 0.05f;
-
-        // Player 1: "PackMAN" (#00E5FF) a x = 220.0f, mirando a la derecha
-        const float p1FeetY = UITheme::CHARACTERS_FEET_Y;
-        const float p1CenterX = UITheme::P1_CENTER_X;
-        DrawCircleGradient(Vector2{ p1CenterX, p1FeetY - 50.0f }, 75.0f,
-                           ColorAlpha(UITheme::COLOR_ACCENT_CYAN, 0.22f + timePulse),
-                           ColorAlpha(UITheme::COLOR_ACCENT_CYAN, 0.0f));
-        DrawEllipse(static_cast<int>(p1CenterX), static_cast<int>(p1FeetY), 40, 10, Color{ 6, 10, 18, 180 });
-        const Rectangle p1Hurtbox{ p1CenterX - 24.0F, p1FeetY - 106.0F, 48.0F, 104.0F };
-        ctx.sprites.Draw(0, SpriteAnimation::Idle, ctx.menuAnimFrame, true, 1, p1Hurtbox, p1FeetY);
-        UIComponents::DrawCharacterNameplate(UITheme::P1_NAME, p1CenterX, p1FeetY + 14.0f, UITheme::P1_COLOR);
-
-        // Player 2: "Shadow" (#FF2E63) a x = 740.0f, mirando a la izquierda
-        const float p2FeetY = UITheme::CHARACTERS_FEET_Y;
-        const float p2CenterX = UITheme::P2_CENTER_X;
-        DrawCircleGradient(Vector2{ p2CenterX, p2FeetY - 50.0f }, 75.0f,
-                           ColorAlpha(UITheme::COLOR_ACCENT_MAIN, 0.22f + timePulse),
-                           ColorAlpha(UITheme::COLOR_ACCENT_MAIN, 0.0f));
-        DrawEllipse(static_cast<int>(p2CenterX), static_cast<int>(p2FeetY), 40, 10, Color{ 6, 10, 18, 180 });
-        const Rectangle p2Hurtbox{ p2CenterX - 24.0F, p2FeetY - 106.0F, 48.0F, 104.0F };
-        ctx.sprites.Draw(1, SpriteAnimation::Idle, ctx.menuAnimFrame, true, -1, p2Hurtbox, p2FeetY);
-        UIComponents::DrawCharacterNameplate(UITheme::P2_NAME, p2CenterX, p2FeetY + 14.0f, UITheme::P2_COLOR);
+        UIComponents::DrawTextModern(UITheme::GetSubtitleText(), 480.0f, 126.0f, UITheme::FONT_SIZE_BODY, UITheme::COLOR_TEXT_MAIN, true, false);
 
         // --- Columna con cursor unico deslizante (ease-out) y feedback de 80 ms ---
         const char* const menuLabelsEs[4] = { "JUGAR", "CONTROLES", "OPCIONES", "SALIR" };
         const char* const menuLabelsEn[4] = { "PLAY", "CONTROLS", "OPTIONS", "QUIT" };
         const char* const* const menuLabels = (UITheme::s_language == UITheme::Language::Spanish) ? menuLabelsEs : menuLabelsEn;
 
-        const float startY = 206.0F;
+        const float startY = 220.0F;
         const float spacing = UITheme::BUTTON_HEIGHT + UITheme::BUTTON_SPACING; // 56.0F
 
         const int clicked = UIComponents::DrawSlidingButtonColumn(
-            menuLabels, 4, 480.0F, startY, UITheme::BUTTON_WIDTH, UITheme::BUTTON_HEIGHT,
+            menuLabels, 4, 480.0F, startY, 274.0F, UITheme::BUTTON_HEIGHT,
             spacing, const_cast<GameContext&>(ctx).mainMenuSelection, dt, const_cast<GameContext&>(ctx).slidingMenu);
 
         if (clicked >= 0)
@@ -1119,10 +1105,7 @@ void RenderGame(const GameContext& ctx)
             const_cast<GameContext&>(ctx).mainMenuSelection = clicked;
             if (clicked == 0) // JUGAR / PLAY
             {
-                UITheme::AudioManager::Instance().PlayStart();
-                UIComponents::g_transition.Start(static_cast<int>(SceneState::InGame), true); // Flash blanco + screen shake
-                ResetMatch(const_cast<GameContext&>(ctx));
-                ResumeGame(const_cast<GameContext&>(ctx));
+                OpenCharacterSelect(const_cast<GameContext&>(ctx));
             }
             else if (clicked == 1) // CONTROLES / CONTROLS
             {
@@ -1132,6 +1115,7 @@ void RenderGame(const GameContext& ctx)
             {
                 UIComponents::g_transition.Start(static_cast<int>(SceneState::Options));
                 const_cast<GameContext&>(ctx).optionsSelection = 0;
+                const_cast<GameContext&>(ctx).optionsReturnScene = SceneState::MainMenu;
             }
             else if (clicked == 3) // SALIR / QUIT
             {
@@ -1149,7 +1133,6 @@ void RenderGame(const GameContext& ctx)
     // 4. Pantalla de Controles (CONTROLS_SCREEN)
     if (ctx.scene == SceneState::Controls)
     {
-        ClearBackground(BLANK); // El fondo full-bleed ya se dibujo en main.cpp
 
         // Titulo de pantalla
         const char* const ctrlTitle = (UITheme::s_language == UITheme::Language::Spanish)
@@ -1169,74 +1152,36 @@ void RenderGame(const GameContext& ctx)
         // Linea divisoria central entre columnas
         DrawLineEx({ 480.0f, cardY + 16.0f }, { 480.0f, cardY + cardH - 16.0f }, 1.0f, ColorAlpha(UITheme::COLOR_ACCENT_CYAN, 0.25f));
 
-        // --- Columna 1: MOVEMENT (Izquierda) ---
-        const float col1X = cardX + 32.0f;
-        const char* const movHeader = (UITheme::s_language == UITheme::Language::Spanish) ? "MOVIMIENTO" : "MOVEMENT";
-        UIComponents::DrawTextModern(movHeader, col1X, cardY + 18.0f, UITheme::FONT_SIZE_BODY, UITheme::COLOR_HIGHLIGHT, false, true);
-
-        struct ControlRow { const char* key; const char* action; };
-        const std::string moveHorizontal = GetKeyDisplayName(GetControlKey(ControlAction::MoveLeft)) + " / " +
-                                           GetKeyDisplayName(GetControlKey(ControlAction::MoveRight));
-        const std::string moveDown = GetKeyDisplayName(GetControlKey(ControlAction::AimDown));
-        const std::string moveUp = GetKeyDisplayName(GetControlKey(ControlAction::AimUp));
-        const ControlRow movementRowsEs[4] = {
-            { moveHorizontal.c_str(), "Caminar / correr y dash dance" },
-            { moveDown.c_str(), "Agacharse / Caida rapida / Bajar plataforma" },
-            { moveUp.c_str(), "Mirar arriba / Ataque arriba / Subir borde" },
-            { "PRESET", "Cambia WASD / Flechas en Opciones" }
+        const bool spanish = UITheme::s_language == UITheme::Language::Spanish;
+        const char* const notesEs[] = {
+            "Caminar o iniciar una carrera", "Caminar o iniciar una carrera", "Dirigir ataques hacia arriba",
+            "Agacharse o bajar de plataforma", "Salto corto, alto o doble", "Golpes rápidos y aéreos",
+            "Ataque Smash", "Recuperación aérea", "Escudo en tierra o esquive aéreo", "Correr con una dirección",
+            "Pausar o reanudar el combate"
         };
-        const ControlRow movementRowsEn[4] = {
-            { moveHorizontal.c_str(), "Move / run and dash dance" },
-            { moveDown.c_str(), "Crouch / Fast-Fall / Drop Platform" },
-            { moveUp.c_str(), "Aim Up / Up-Tilt / Ledge Climb" },
-            { "PRESET", "Switch WASD / Arrows in Options" }
+        const char* const notesEn[] = {
+            "Walk or start a dash", "Walk or start a dash", "Aim attacks upward", "Crouch or drop through",
+            "Short, full or double jump", "Quick strikes and aerials", "Smash attack", "Aerial recovery",
+            "Ground shield or air dodge", "Hold with a direction", "Pause or resume the match"
         };
-        const ControlRow* const movementRows = (UITheme::s_language == UITheme::Language::Spanish) ? movementRowsEs : movementRowsEn;
-
-        for (int i = 0; i < 4; ++i)
+        for (int column = 0; column < 2; ++column)
         {
-            const float rowY = cardY + 54.0f + static_cast<float>(i) * 72.0f;
-            UIComponents::DrawTextModern(movementRows[i].key, col1X, rowY, UITheme::FONT_SIZE_BODY, UITheme::COLOR_ACCENT_CYAN, false, false);
-            UIComponents::DrawTextModern(movementRows[i].action, col1X, rowY + 24.0f, UITheme::FONT_SIZE_SMALL, Color{ 250, 248, 255, 255 }, false, false);
-        }
-
-        // --- Columna 2: ACTIONS (Derecha) ---
-        const float col2X = 512.0f;
-        const char* const actHeader = (UITheme::s_language == UITheme::Language::Spanish) ? "ACCIONES" : "ACTIONS";
-        UIComponents::DrawTextModern(actHeader, col2X, cardY + 18.0f, UITheme::FONT_SIZE_BODY, UITheme::COLOR_HIGHLIGHT, false, true);
-
-        const std::string jumpKey = "[" + GetKeyDisplayName(GetControlKey(ControlAction::Jump)) + "]";
-        const std::string lightKey = "[" + GetKeyDisplayName(GetControlKey(ControlAction::LightAttack)) + "]";
-        const std::string heavyKey = "[" + GetKeyDisplayName(GetControlKey(ControlAction::HeavyAttack)) + "]";
-        const std::string specialKey = "[" + GetKeyDisplayName(GetControlKey(ControlAction::Special)) + "]";
-        const std::string dodgeKey = "[" + GetKeyDisplayName(GetControlKey(ControlAction::Dodge)) + "]";
-        const std::string runKey = "[" + GetKeyDisplayName(GetControlKey(ControlAction::Run)) + "]";
-        const std::string pauseKey = "[" + GetKeyDisplayName(GetControlKey(ControlAction::Pause)) + "]";
-        const ControlRow actionRowsEs[7] = {
-            { jumpKey.c_str(), "Salto corto / Alto / Doble salto" },
-            { lightKey.c_str(), "Golpes basicos, Inclinados y Aereos" },
-            { heavyKey.c_str(), "Ataques Smash" },
-            { specialKey.c_str(), "Recuperacion Especial (Arriba-B)" },
-            { dodgeKey.c_str(), "Esquive en el aire / Wavedash" },
-            { runKey.c_str(), "Correr" },
-            { pauseKey.c_str(), "Pausar o reanudar el combate" }
-        };
-        const ControlRow actionRowsEn[7] = {
-            { jumpKey.c_str(), "Short / Full / Double Jump" },
-            { lightKey.c_str(), "Jab, Tilts and Aerials" },
-            { heavyKey.c_str(), "Smash attacks" },
-            { specialKey.c_str(), "Up-B Recovery" },
-            { dodgeKey.c_str(), "Air dodge / Wavedash" },
-            { runKey.c_str(), "Run" },
-            { pauseKey.c_str(), "Pause or resume match" }
-        };
-        const ControlRow* const actionRows = (UITheme::s_language == UITheme::Language::Spanish) ? actionRowsEs : actionRowsEn;
-
-        for (int i = 0; i < 7; ++i)
-        {
-            const float rowY = cardY + 48.0f + static_cast<float>(i) * 44.0f;
-            UIComponents::DrawTextModern(actionRows[i].key, col2X, rowY, UITheme::FONT_SIZE_BODY, UITheme::COLOR_ACCENT_CYAN, false, false);
-            UIComponents::DrawTextModern(actionRows[i].action, col2X, rowY + 22.0f, UITheme::FONT_SIZE_SMALL, Color{ 250, 248, 255, 255 }, false, false);
+            const float x = cardX + 22 + column * 400;
+            const int start = column == 0 ? 0 : int(ControlAction::Jump);
+            const int end = column == 0 ? int(ControlAction::Jump) : int(ControlAction::Count);
+            const char* heading = column == 0 ? (spanish ? "MOVIMIENTO" : "MOVEMENT") : (spanish ? "ACCIONES" : "ACTIONS");
+            DrawRectangleRec({x, cardY + 16, 4, 23}, column == 0 ? UITheme::P1_COLOR : UITheme::P2_COLOR);
+            UIComponents::DrawTextModern(heading, x + 12, cardY + 16, 21, UITheme::COLOR_TEXT_MAIN, false, true);
+            for (int i = start; i < end; ++i)
+            {
+                const float y = cardY + 48 + (i - start) * (column == 0 ? 66 : 43);
+                const auto action = static_cast<ControlAction>(i);
+                const auto key = GetKeyDisplayName(GetControlKey(action));
+                const float keyWidth = std::max(32.0f, UIComponents::MeasureTextModern(key.c_str(), UITheme::FONT_SIZE_SMALL).x + 16);
+                UIComponents::DrawKeycap(key.c_str(), x + 352 - keyWidth, y);
+                UIComponents::DrawTextModern(GetControlActionName(action, spanish), x, y, 20, UITheme::COLOR_TEXT_MAIN, false, false);
+                UIComponents::DrawTextModern(spanish ? notesEs[i] : notesEn[i], x, y + 21, 16, UITheme::COLOR_TEXT_MUTED, false, false);
+            }
         }
 
         // Boton VOLVER / BACK estandarizado (240x44 px) centrado abajo
@@ -1260,11 +1205,10 @@ void RenderGame(const GameContext& ctx)
 
     if (ctx.scene == SceneState::ControlsConfig)
     {
-        ClearBackground(BLANK);
         const bool isEs = UITheme::s_language == UITheme::Language::Spanish;
-        UIComponents::DrawTextModern(isEs ? "CONFIGURAR CONTROLES" : "CONTROL CONFIGURATION", 480, 24,
+        UIComponents::DrawTextModern(isEs ? "CONFIGURAR CONTROLES" : "CONTROL CONFIGURATION", 480, 9,
                                      UITheme::FONT_SIZE_TITLE, UITheme::COLOR_ACCENT_CYAN, true, true);
-        UIComponents::DrawTextModern(isEs ? "TECLADO DEL JUGADOR 1" : "PLAYER 1 KEYBOARD", 480, 55,
+        UIComponents::DrawTextModern(isEs ? "TECLADO DEL JUGADOR 1" : "PLAYER 1 KEYBOARD", 480, 48,
                                      UITheme::FONT_SIZE_SMALL, UITheme::COLOR_HIGHLIGHT, true, false);
         UIComponents::DrawCutCornerRect({ 104, 72, 752, 356 }, 10, Color{ 14, 10, 22, 244 }, UITheme::COLOR_ACCENT_CYAN, 2);
 
@@ -1289,15 +1233,14 @@ void RenderGame(const GameContext& ctx)
             const int actionIndex = scroll + row;
             const Rectangle rowRect{ 118, 122.0F + row * 39.0F, 724, 35 };
             const bool selected = actionIndex + 1 == ctx.controlsSelection;
-            const Color bg = selected ? Color{ 38, 20, 58, 245 } : Color{ 16, 10, 26, 180 };
-            UIComponents::DrawCutCornerRect(rowRect, 4, bg, selected ? UITheme::COLOR_ACCENT_MAIN : Color{ 52, 36, 78, 220 }, selected ? 2 : 1);
+            const Color bg = selected ? UITheme::FOCUS : UITheme::SURFACE;
+            UIComponents::DrawCutCornerRect(rowRect, 4, bg, selected ? UITheme::COLOR_ACCENT_MAIN : UITheme::EDGE, selected ? 2 : 1);
             const auto action = static_cast<ControlAction>(actionIndex);
             UIComponents::DrawTextModern(GetControlActionName(action, isEs), 136, rowRect.y + 8,
                                          UITheme::FONT_SIZE_SMALL, selected ? UITheme::COLOR_HIGHLIGHT : UITheme::COLOR_TEXT_MAIN, false, false);
             const std::string keyName = GetKeyDisplayName(GetControlKey(action));
-            UIComponents::DrawTextModern(keyName.c_str(), 600, rowRect.y + 8,
-                                         UITheme::FONT_SIZE_SMALL, UITheme::COLOR_ACCENT_CYAN, true, false);
-            UIComponents::DrawTextModern("[ CHANGE ]", 790, rowRect.y + 8,
+            UIComponents::DrawKeycap(keyName.c_str(), 544, rowRect.y + 5);
+            UIComponents::DrawTextModern(isEs ? "CAMBIAR" : "CHANGE", 790, rowRect.y + 8,
                                          UITheme::FONT_SIZE_SMALL, selected ? UITheme::COLOR_HIGHLIGHT : UITheme::COLOR_TEXT_MUTED, true, false);
         }
 
@@ -1308,10 +1251,11 @@ void RenderGame(const GameContext& ctx)
         for (int i = 0; i < 3; ++i)
         {
             const bool selected = ctx.controlsSelection == indices[i];
-            UIComponents::DrawCutCornerRect(buttons[i], 5, selected ? Color{ 38, 20, 58, 250 } : Color{ 16, 10, 26, 225 },
-                                            selected ? UITheme::COLOR_ACCENT_MAIN : UITheme::COLOR_ACCENT_CYAN, selected ? 2 : 1);
+            const auto state = ctx.controlsCapturing ? UIComponents::ButtonState::Disabled :
+                               (selected ? UIComponents::ButtonState::Focused : UIComponents::ButtonState::Normal);
+            UIComponents::DrawButtonSurface(buttons[i], state);
             UIComponents::DrawTextModern(labels[i], buttons[i].x + buttons[i].width * 0.5F, buttons[i].y + 9,
-                                         UITheme::FONT_SIZE_SMALL, selected ? UITheme::COLOR_HIGHLIGHT : UITheme::COLOR_TEXT_MAIN, true, false);
+                                         UITheme::FONT_SIZE_SMALL, ctx.controlsCapturing ? UITheme::COLOR_TEXT_MUTED : selected ? UITheme::COLOR_HIGHLIGHT : UITheme::COLOR_TEXT_MAIN, true, false);
         }
 
         if (!ctx.controlsMessage.empty() && (ctx.controlsMessageTimer > 0.0F || ctx.controlsCapturing))
@@ -1337,23 +1281,22 @@ void RenderGame(const GameContext& ctx)
     // 5. Pantalla de Opciones (OPTIONS_SCREEN)
     if (ctx.scene == SceneState::Options)
     {
-        ClearBackground(BLANK); // El fondo full-bleed ya se dibujo en main.cpp
 
         // Titulo principal y subtitulo claros y legibles
         const char* const optTitle = (UITheme::s_language == UITheme::Language::Spanish) ? "OPCIONES" : "OPTIONS";
         const char* const optSub = (UITheme::s_language == UITheme::Language::Spanish)
             ? "PREFERENCIAS DE JUEGO Y PANTALLA"
             : "GAMEPLAY & DISPLAY PREFERENCES";
-        UIComponents::DrawTextModern(optTitle, 480.0F, 28.0F, UITheme::FONT_SIZE_TITLE, UITheme::COLOR_ACCENT_CYAN, true, true);
-        UIComponents::DrawTextModern(optSub, 480.0F, 56.0F, UITheme::FONT_SIZE_SMALL, UITheme::COLOR_HIGHLIGHT, true, false);
+        UIComponents::DrawTextModern(optTitle, 480.0F, 9.0F, UITheme::FONT_SIZE_TITLE, UITheme::COLOR_ACCENT_CYAN, true, true);
+        UIComponents::DrawTextModern(optSub, 480.0F, 48.0F, UITheme::FONT_SIZE_SMALL, UITheme::COLOR_HIGHLIGHT, true, false);
 
         // Panel central con esquinas cortadas (780 x 340 px)
         const float cardW = 780.0F;
-        const float cardH = 340.0F;
+        const float cardH = 360.0F;
         const float cardX = 480.0F - cardW * 0.5F;
         const float cardY = 72.0F;
         UIComponents::DrawCutCornerRect(Rectangle{ cardX, cardY, cardW, cardH }, 12.0F,
-                                        Color{ 14, 10, 22, 240 }, UITheme::COLOR_ACCENT_CYAN, 2.0F);
+                                        UITheme::PANEL, UITheme::COLOR_ACCENT_CYAN, 2.0F);
 
         const Vector2 mpos = UITheme::GetVirtualMousePosition();
         const bool mClick = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
@@ -1412,19 +1355,19 @@ void RenderGame(const GameContext& ctx)
         const OptionRowDef rows[6] = {
             {
                 isEs ? "MODO OPONENTE" : "OPPONENT MODE",
-                isEs ? "Comportamiento del rival (Inmovil / CPU Basica / DI + Escudo)" : "Controls Rival behavior (Dummy Stand / Basic CPU / DI+Shield)",
+                isEs ? "Elige cómo responde el rival." : "Choose how the opponent responds.",
                 oppText,
                 oppColor
             },
             {
                 isEs ? "INFORMACION DEBUG" : "DEBUG OVERLAY",
-                isEs ? "Muestra hitboxes, hurtboxes, diamante ECB y datos (F1)" : "Show hitboxes, hurtboxes, ECB diamond & state info (F1)",
+                isEs ? "Muestra colisiones y datos de combate (F1)." : "Show collisions and combat data (F1).",
                 debugText,
                 ctx.debugMode ? UITheme::COLOR_ACCENT_CYAN : Color{ 250, 245, 255, 255 }
             },
             {
                 isEs ? "MODO DE ESCALADO" : "SCALING MODE",
-                isEs ? "Filtro de renderizado (Ajustar Suave / Pixel-Perfect)" : "Render buffer scaling filter (Fit Smooth / Pixel-Perfect)",
+                isEs ? "Ajusta cómo se escala el escenario." : "Choose how the stage scales.",
                 scalingText,
                 UITheme::COLOR_ACCENT_CYAN
             },
@@ -1459,11 +1402,11 @@ void RenderGame(const GameContext& ctx)
 
         const float rowW = cardW - 28.0F;
         const float rowX = cardX + 14.0F;
-        const float rowH = 48.0F;
+        const float rowH = 54.0F;
 
         for (int i = 0; i < 6; ++i)
         {
-            const float rowY = cardY + 8.0F + static_cast<float>(i) * 51.0F;
+            const float rowY = cardY + 8.0F + static_cast<float>(i) * 58.0F;
             const Rectangle rowRec = { rowX, rowY, rowW, rowH };
             const bool hovered = CheckCollisionPointRec(mpos, rowRec);
 
@@ -1503,21 +1446,22 @@ void RenderGame(const GameContext& ctx)
             }
 
             const bool isSelected = (ctx.optionsSelection == i);
-            const Color rowBg = isSelected ? Color{ 38, 20, 58, 240 } : Color{ 16, 10, 26, 200 };
-            const Color rowBorder = isSelected ? UITheme::COLOR_ACCENT_MAIN : Color{ 52, 36, 78, 220 };
+            const Color rowBg = isSelected ? UITheme::FOCUS : UITheme::SURFACE;
+            const Color rowBorder = isSelected ? UITheme::COLOR_ACCENT_MAIN : UITheme::EDGE;
 
             UIComponents::DrawCutCornerRect(rowRec, 6.0F, rowBg, rowBorder, isSelected ? 2.0F : 1.0F);
 
             // Left: Title and description (claros, definidos y legibles)
             UIComponents::DrawTextModern(rows[i].title, rowX + 20.0F, rowY + 7.0F, UITheme::FONT_SIZE_BODY,
                                          isSelected ? UITheme::COLOR_HIGHLIGHT : UITheme::COLOR_TEXT_MAIN, false, false);
-            UIComponents::DrawTextModern(rows[i].desc, rowX + 20.0F, rowY + 31.0F, UITheme::FONT_SIZE_SMALL,
-                                         Color{ 250, 248, 255, 255 }, false, false);
+            UIComponents::DrawTextModern(rows[i].desc, rowX + 20.0F, rowY + 29.0F, UITheme::FONT_SIZE_SMALL,
+                                         UITheme::COLOR_TEXT_MUTED, false, false);
 
             // Right: Value string
             const Vector2 valSize = UIComponents::MeasureTextModern(rows[i].value.c_str(), UITheme::FONT_SIZE_BODY);
             const float valX = rowX + rowW - 20.0F - valSize.x;
             const float valY = rowY + (rowH - valSize.y) * 0.5F;
+            DrawRectangleRec({valX - 12, rowY + 11, 1, rowH - 22}, UITheme::EDGE);
             UIComponents::DrawTextModern(rows[i].value.c_str(), valX, valY, UITheme::FONT_SIZE_BODY, rows[i].valColor, false, false);
         }
 

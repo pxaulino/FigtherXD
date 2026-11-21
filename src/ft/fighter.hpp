@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "ft/character.hpp"
 
 #include <raylib.h>
 
@@ -63,8 +64,8 @@ enum class ActionState : std::uint8_t
 
 struct FighterAttributes
 {
-    float groundFriction = 1200.0F;
-    float walkAccel = 880.0F;
+    float groundFriction = 1520.0F;
+    float walkAccel = 1180.0F;
     float walkMaxVelocity = 220.0F;
     float dashInitialVelocity = 310.0F;
     float dashRunAccel = 1400.0F;
@@ -109,6 +110,7 @@ struct FighterInput
 
 struct Fighter
 {
+    Character character = Character::PackMAN;
     FighterAttributes attributes{};
     Vector2 position{}; // Punto central inferior (PIES / vertice bottom del ECB) en coordenadas de mundo.
     Vector2 previousPosition{};
@@ -125,6 +127,7 @@ struct Fighter
     int hitstunFrames = 0;
     int invulnerabilityFrames = 0;
     int jumpSquatFrame = 0;
+    int coyoteFrames = 0;
     int jumpBufferFrames = 0;
     int airJumps = 1;
     int ledgeId = -1;

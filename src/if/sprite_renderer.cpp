@@ -4,6 +4,7 @@
 #include "sprite_renderer.hpp"
 #endif
 
+#include "ft/character.hpp"
 #include <algorithm>
 #include <filesystem>
 
@@ -11,7 +12,7 @@ namespace
 {
 constexpr int kCellSize = 200;
 constexpr float kAlphaThreshold = 0.1F;
-constexpr const char* kSpriteFolder[] = { "Martial Hero/Sprites", "Martial Hero 2/Sprites" };
+
 constexpr const char* kFiles[2][static_cast<std::size_t>(SpriteAnimation::Count)] = {
     { "Idle.png", "Run.png", "Jump.png", "Fall.png", "Attack1.png", "Attack2.png", "Take Hit.png" },
     { "Idle.png", "Run.png", "Jump.png", "Fall.png", "Attack1.png", "Attack2.png", "Take hit.png" },
@@ -27,7 +28,7 @@ bool SpriteRenderer::Load()
         {
             anyLoaded = LoadStrip(fighter,
                                  static_cast<SpriteAnimation>(animation),
-                                 std::string(kSpriteFolder[fighter]) + "/" + kFiles[fighter][animation]) || anyLoaded;
+                                 std::string(Roster[fighter].spriteDirectory) + "/" + kFiles[fighter][animation]) || anyLoaded;
         }
     }
     return anyLoaded;
@@ -165,7 +166,7 @@ bool SpriteRenderer::Draw(int fighterIndex,
     const float frameX = fighterCenterX - visibleCenterX * scale;
     const float frameY = feetY - (alpha.y + alpha.height) * scale;
     const Rectangle source{
-        static_cast<float>((frameIndex + (flipped ? 1 : 0)) * kCellSize),
+        static_cast<float>(frameIndex * kCellSize),
         0.0F,
         flipped ? -static_cast<float>(kCellSize) : static_cast<float>(kCellSize),
         static_cast<float>(kCellSize),

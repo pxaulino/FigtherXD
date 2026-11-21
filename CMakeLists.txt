@@ -11,6 +11,7 @@ add_subdirectory(libs/raylib)
 set(SOURCES
     src/main.cpp
     src/gm/game.cpp
+    src/if/character_select.cpp
     src/if/sprite_renderer.cpp
     src/if/hud.cpp
     src/if/menu_renderer.cpp

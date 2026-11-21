@@ -96,6 +96,13 @@ std::string KeyToken(int key)
     case KEY_RIGHT_ALT: return "KEY_RIGHT_ALT";
     case KEY_RIGHT_SUPER: return "KEY_RIGHT_SUPER";
     case KEY_KB_MENU: return "KEY_KB_MENU";
+    case KEY_KP_DECIMAL: return "KEY_KP_DECIMAL";
+    case KEY_KP_DIVIDE: return "KEY_KP_DIVIDE";
+    case KEY_KP_MULTIPLY: return "KEY_KP_MULTIPLY";
+    case KEY_KP_SUBTRACT: return "KEY_KP_SUBTRACT";
+    case KEY_KP_ADD: return "KEY_KP_ADD";
+    case KEY_KP_ENTER: return "KEY_KP_ENTER";
+    case KEY_KP_EQUAL: return "KEY_KP_EQUAL";
     default:
         if (key >= KEY_ZERO && key <= KEY_NINE) return std::string("KEY_") + static_cast<char>('0' + key - KEY_ZERO);
         if (key >= KEY_A && key <= KEY_Z) return std::string("KEY_") + static_cast<char>('A' + key - KEY_A);
@@ -108,7 +115,7 @@ std::string KeyToken(int key)
 int TokenKey(const std::string& token)
 {
     for (int key = KEY_SPACE; key <= KEY_KB_MENU; ++key)
-        if (IsValidRebindKey(key) && KeyToken(key) == token) return key;
+        if (KeyToken(key) == token && IsValidRebindKey(key)) return key;
     return KEY_NULL;
 }
 
@@ -248,6 +255,19 @@ bool SetMovementPreset(MovementPreset preset)
 
 ControlSettings& GetControlSettings() { return g_settings; }
 int GetControlKey(ControlAction action) { return g_settings.keys[static_cast<std::size_t>(action)]; }
+bool HasControlBinding(int key)
+{
+    return std::find(g_settings.keys.begin(), g_settings.keys.end(), key) != g_settings.keys.end();
+}
+bool SwapControlBindings(ControlAction first, ControlAction second)
+{
+    ControlSettings candidate = g_settings;
+    std::swap(candidate.keys[static_cast<int>(first)], candidate.keys[static_cast<int>(second)]);
+    if (!ValidSettings(candidate)) return false;
+    candidate.preset = MovementPreset::Custom;
+    g_settings = candidate;
+    return true;
+}
 bool IsControlDown(ControlAction action) { return IsKeyDown(GetControlKey(action)); }
 bool IsControlPressed(ControlAction action) { return IsKeyPressed(GetControlKey(action)); }
 bool IsControlReleased(ControlAction action) { return IsKeyReleased(GetControlKey(action)); }
@@ -271,9 +291,7 @@ std::string GetKeyDisplayName(int key)
 
 bool IsValidRebindKey(int key)
 {
-    if (key == KEY_NULL || key == KEY_ESCAPE) return false;
-    if ((key >= KEY_SPACE && key <= KEY_KB_MENU) || (key >= KEY_KP_0 && key <= KEY_KP_EQUAL)) return true;
-    return false;
+    return key != KEY_ESCAPE && KeyToken(key) != "KEY_NULL";
 }
 
 bool AreControlsCompatible(ControlAction first, ControlAction second)

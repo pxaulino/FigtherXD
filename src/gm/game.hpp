@@ -17,6 +17,7 @@
 enum class SceneState
 {
     MainMenu,
+    CharacterSelect,
     Controls,
     Options,
     ControlsConfig,
@@ -63,12 +64,19 @@ struct GameContext
     int controlsConflictKey = KEY_NULL;
     std::string controlsMessage{};
     float controlsMessageTimer = 0.0F;
-    int pauseMenuSelection = 0;  // 0: Resume, 1: New Game, 2: Menu
+    int pauseMenuSelection = 0;
     float pauseEntranceTimer = 0.0f; // Animacion de entrada 120 ms
     OpponentMode opponentMode = OpponentMode::DummyQuiet;
     bool debugMode = false;
     bool shouldQuit = false;
 
+    Character selected = Character::PackMAN;
+    Character highlighted = Character::PackMAN;
+    SceneState selectReturn = SceneState::MainMenu;
+    float selectionPulse = 0;
+    bool stickLatched = false;
+    bool confirmed = false;
+    std::array<float,2> stockFlash{};
     Stage stage{};
     std::array<Fighter, 2> fighters{};
     CompetitiveCamera camera{};
@@ -84,5 +92,6 @@ struct GameContext
 void InitGame(GameContext& ctx);
 void ResetMatch(GameContext& ctx);
 void UpdateGame(GameContext& ctx);
-void RenderGame(const GameContext& ctx);
+void RenderWorld(const GameContext& ctx);
+void RenderInterface(const GameContext& ctx);
 void ShutdownGame(GameContext& ctx);

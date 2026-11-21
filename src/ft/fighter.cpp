@@ -57,6 +57,7 @@ void ApplyGroundFriction(Fighter& fighter, float dt)
 void EnterJumpSquat(Fighter& fighter)
 {
     fighter.jumpBufferFrames = 0;
+    fighter.coyoteFrames = 0;
     fighter.jumpSquatFrame = 1;
     fighter.shortHopRequested = false;
     SetActionState(fighter, ActionState::JumpSquat);
@@ -252,6 +253,7 @@ void UpdateFighter(Fighter& fighter, const FighterInput& input, float dt)
     fighter.damageShake = std::max(0.0F, fighter.damageShake - dt);
     fighter.diStickX = ClampAxis(input.stickX);
     fighter.diStickY = ClampAxis(input.stickY);
+    if (fighter.coyoteFrames > 0) --fighter.coyoteFrames;
     if (fighter.jumpBufferFrames > 0) --fighter.jumpBufferFrames;
     if (input.jumpPressed) fighter.jumpBufferFrames = 5;
 
@@ -511,7 +513,7 @@ void UpdateFighter(Fighter& fighter, const FighterInput& input, float dt)
     }
 
     // ---------------------------------------------------------------- Ataques
-    if (input.specialPressed && !fighter.grounded && fighter.state != ActionState::SpecialUp && !helpless)
+    if (input.specialPressed && !fighter.grounded && !IsAttackingState(fighter.state) && !helpless)
     {
         fighter.velocity.y = -720.0F;
         fighter.grounded = false;
@@ -575,7 +577,7 @@ void UpdateFighter(Fighter& fighter, const FighterInput& input, float dt)
     // ------------------------------------------------------------------ Saltos
     if (input.jumpPressed || (fighter.grounded && fighter.jumpBufferFrames > 0))
     {
-        if (fighter.grounded && fighter.state != ActionState::JumpSquat)
+        if ((fighter.grounded || fighter.coyoteFrames > 0) && !helpless && fighter.state != ActionState::JumpSquat)
         {
             EnterJumpSquat(fighter);
             return;
@@ -644,7 +646,9 @@ void UpdateFighter(Fighter& fighter, const FighterInput& input, float dt)
             }
             else if (fighter.state != ActionState::Turn)
             {
-                fighter.velocity.x += axis * fighter.attributes.walkAccel * dt;
+                const bool reversing = axis * fighter.velocity.x < 0;
+                const float acceleration = fighter.attributes.walkAccel + (reversing ? fighter.attributes.groundFriction : 0);
+                fighter.velocity.x += axis * acceleration * dt;
                 const float maxWalk = fighter.attributes.walkMaxVelocity;
                 fighter.velocity.x = std::clamp(fighter.velocity.x, -maxWalk, maxWalk);
                 fighter.facingDir = axis > 0.0F ? 1 : -1;
@@ -726,9 +730,10 @@ void UpdateFighter(Fighter& fighter, const FighterInput& input, float dt)
 
     if (fighter.state == ActionState::Turn && fighter.stateFrame >= 4)
     {
-        fighter.facingDir = -fighter.facingDir;
         if (std::abs(axis) > 0.12F)
         {
+            fighter.facingDir = axis < 0 ? -1 : 1;
+            fighter.velocity.x = fighter.facingDir * fighter.attributes.dashInitialVelocity;
             SetActionState(fighter, ActionState::Dash);
         }
         else
@@ -761,7 +766,7 @@ void IntegrateFighter(Fighter& fighter, float dt)
     }
 
     fighter.velocity.y = std::min(fighter.velocity.y + fighter.attributes.gravity * dt,
-                                  fighter.attributes.terminalVelocity);
+                                  fighter.fastFalling ? fighter.attributes.fastFallVelocity : fighter.attributes.terminalVelocity);
     fighter.position.x += fighter.velocity.x * dt;
     fighter.position.y += fighter.velocity.y * dt;
 }
@@ -769,6 +774,7 @@ void IntegrateFighter(Fighter& fighter, float dt)
 void ApplyDamageLaunch(Fighter& fighter, float, float knockback, float angleDegrees,
                        int hitlagFrames, int hitstunFrames, int attackerFacing)
 {
+    fighter.coyoteFrames = 0;
     fighter.launchKnockback = std::max(knockback, 0.0F);
     fighter.launchAngleDegrees = angleDegrees;
     fighter.launchDirection = attackerFacing >= 0 ? 1 : -1;

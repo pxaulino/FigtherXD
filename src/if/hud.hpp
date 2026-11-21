@@ -11,4 +11,8 @@ enum class OpponentMode
     DummyDiShield
 };
 
-void DrawHud(const std::array<Fighter, 2>& fighters, OpponentMode mode, bool debugMode, float fps);
+#include "if/sprite_renderer.hpp"
+
+inline constexpr int HudBandHeight = 72;
+
+void DrawHud(const SpriteRenderer& sprites, const std::array<float,2>& stockFlash, const std::array<Fighter, 2>& fighters, OpponentMode mode, bool debugMode, float fps);

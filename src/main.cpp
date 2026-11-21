@@ -50,18 +50,19 @@ int main()
     if (!IsWindowReady()) return 1;
 
     SetupWindowIcon();
-    UITheme::FontManager::Instance().Load(1.0f);
-    UITheme::AudioManager::Instance().Init();
+    UITheme::FontManager::Instance().Load();
+    constexpr bool audioEnabled = false;
+    if constexpr (audioEnabled) UITheme::AudioManager::Instance().Init();
 
     SetTargetFPS(60);
     SetExitKey(KEY_NULL); // Evita que ESC cierre la ventana abruptamente
 
     // Búfer virtual de diseno (960x540)
-    RenderTexture2D virtualTarget = LoadRenderTexture(UITheme::VIRTUAL_WIDTH, UITheme::VIRTUAL_HEIGHT);
+    RenderTexture2D virtualTarget = LoadRenderTexture(UITheme::VIRTUAL_WIDTH, UITheme::VIRTUAL_HEIGHT - HudBandHeight);
     SetTextureFilter(virtualTarget.texture, TEXTURE_FILTER_POINT);
 
     // Búfer intermedio para tecnica Sharp Bilinear (1920x1080)
-    RenderTexture2D intermediateTarget = LoadRenderTexture(UITheme::VIRTUAL_WIDTH * 2, UITheme::VIRTUAL_HEIGHT * 2);
+    RenderTexture2D intermediateTarget = LoadRenderTexture(UITheme::VIRTUAL_WIDTH * 2, (UITheme::VIRTUAL_HEIGHT - HudBandHeight) * 2);
     SetTextureFilter(intermediateTarget.texture, TEXTURE_FILTER_BILINEAR);
 
     GameContext ctx{};
@@ -72,7 +73,8 @@ int main()
         const float dt = GetFrameTime();
 
         // 1. Alternar pantalla completa con F11
-        if (IsKeyPressed(KEY_F11))
+        if (IsKeyPressed(KEY_F11) && !ctx.controlsCapturing &&
+            (ctx.scene != SceneState::InGame || !HasControlBinding(KEY_F11)))
         {
             ToggleFullscreen();
             SetWindowFocused();
@@ -97,7 +99,7 @@ int main()
         if (UITheme::s_scalingMode == UITheme::ScalingMode::PixelPerfect)
         {
             const int maxIntScale = std::min(winW / UITheme::VIRTUAL_WIDTH, winH / UITheme::VIRTUAL_HEIGHT);
-            scale = (maxIntScale >= 1) ? static_cast<float>(maxIntScale) : 1.0f;
+            scale = (maxIntScale >= 1) ? static_cast<float>(maxIntScale) : std::max(0.001f, std::min(winW / float(UITheme::VIRTUAL_WIDTH), winH / float(UITheme::VIRTUAL_HEIGHT)));
         }
         else
         {
@@ -116,7 +118,7 @@ int main()
         };
 
         UITheme::SetViewportMetrics(scale, offset, winW, winH);
-        UITheme::FontManager::Instance().Load(scale);
+
 
         // 4. Actualizacion de transicion suave entre pantallas
         UIComponents::g_transition.Update(dt, ctx.scene);
@@ -124,51 +126,39 @@ int main()
         // 5. Actualizacion logica fija a 60 FPS
         UpdateGame(ctx);
 
-        // 6. Renderizado de todo el juego en el búfer virtual de 960x540
-        BeginTextureMode(virtualTarget);
-        ClearBackground(BLANK);
-        RenderGame(ctx);
-        EndTextureMode();
+        const bool combat = ctx.scene == SceneState::InGame || ctx.scene == SceneState::Paused;
+        const bool smooth = UITheme::s_scalingMode == UITheme::ScalingMode::FitSmooth;
+        Texture2D world = virtualTarget.texture;
+        const auto flipped = [](Texture2D image) {
+            return Rectangle{0, 0, float(image.width), -float(image.height)};
+        };
+        if (combat)
+        {
+            BeginTextureMode(virtualTarget);
+            RenderWorld(ctx);
+            EndTextureMode();
+            if (smooth)
+            {
+                BeginTextureMode(intermediateTarget);
+                DrawTexturePro(world, flipped(world), {0, 0, float(intermediateTarget.texture.width),
+                               float(intermediateTarget.texture.height)}, {}, 0, WHITE);
+                EndTextureMode();
+                world = intermediateTarget.texture;
+            }
+        }
 
-        // 7. Presentacion en ventana con fondo "full-bleed" y tecnica Sharp Bilinear
         BeginDrawing();
         ClearBackground(UITheme::COLOR_BG_BASE);
-
-        const bool isMenuScreen = (ctx.scene == SceneState::MainMenu ||
-                                   ctx.scene == SceneState::Controls ||
-                                   ctx.scene == SceneState::Options);
-
-        if (isMenuScreen)
-        {
-            // En menus, el fondo cubre TODA la ventana (sin barras)
-            UIComponents::DrawFullBleedBackground(winW, winH);
-        }
-
-        if (UITheme::s_scalingMode == UITheme::ScalingMode::FitSmooth)
-        {
-            // Paso Sharp Bilinear: 960x540 -> 1920x1080 (Point) -> tamano destino (Bilinear)
-            BeginTextureMode(intermediateTarget);
-            ClearBackground(BLANK);
-            rlDisableColorBlend();
-            const Rectangle srcVirt = { 0.0f, 0.0f, static_cast<float>(virtualTarget.texture.width), -static_cast<float>(virtualTarget.texture.height) };
-            const Rectangle dstInter = { 0.0f, 0.0f, static_cast<float>(intermediateTarget.texture.width), static_cast<float>(intermediateTarget.texture.height) };
-            DrawTexturePro(virtualTarget.texture, srcVirt, dstInter, { 0.0f, 0.0f }, 0.0f, WHITE);
-            rlEnableColorBlend();
-            EndTextureMode();
-
-            const Vector2 shake = UIComponents::g_transition.GetShakeOffset();
-            const Rectangle srcInter = { 0.0f, 0.0f, static_cast<float>(intermediateTarget.texture.width), -static_cast<float>(intermediateTarget.texture.height) };
-            const Rectangle dstFinal = { offset.x + shake.x, offset.y + shake.y, safeW, safeH };
-            DrawTexturePro(intermediateTarget.texture, srcInter, dstFinal, { 0.0f, 0.0f }, 0.0f, WHITE);
-        }
+        const Vector2 shake = UIComponents::g_transition.GetShakeOffset();
+        const Vector2 origin{offset.x + shake.x, offset.y + shake.y};
+        if (combat)
+            DrawTexturePro(world, flipped(world), {origin.x, origin.y + HudBandHeight * scale, safeW, safeH - HudBandHeight * scale}, {}, 0, WHITE);
         else
-        {
-            // Mapeo entero pixel-perfect directo
-            const Vector2 shake = UIComponents::g_transition.GetShakeOffset();
-            const Rectangle srcVirt = { 0.0f, 0.0f, static_cast<float>(virtualTarget.texture.width), -static_cast<float>(virtualTarget.texture.height) };
-            const Rectangle dstFinal = { offset.x + shake.x, offset.y + shake.y, safeW, safeH };
-            DrawTexturePro(virtualTarget.texture, srcVirt, dstFinal, { 0.0f, 0.0f }, 0.0f, WHITE);
-        }
+            UIComponents::DrawFullBleedBackground(winW, winH);
+
+        BeginMode2D(Camera2D{origin, {}, 0, scale});
+        RenderInterface(ctx);
+        EndMode2D();
 
         // Overlay de transicion con fundido y flash
         UIComponents::g_transition.DrawOverlay(winW, winH);
@@ -179,7 +169,7 @@ int main()
     ShutdownGame(ctx);
     UnloadRenderTexture(virtualTarget);
     UnloadRenderTexture(intermediateTarget);
-    UITheme::AudioManager::Instance().Unload();
+    if constexpr (audioEnabled) UITheme::AudioManager::Instance().Unload();
     UITheme::FontManager::Instance().Unload();
     CloseWindow();
     return 0;

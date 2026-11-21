@@ -23,6 +23,8 @@ void ResetControlSettings();
 bool SetMovementPreset(MovementPreset preset);
 ControlSettings& GetControlSettings();
 int GetControlKey(ControlAction action);
+bool HasControlBinding(int key);
+bool SwapControlBindings(ControlAction first, ControlAction second);
 bool IsControlDown(ControlAction action);
 bool IsControlPressed(ControlAction action);
 bool IsControlReleased(ControlAction action);
