@@ -1,0 +1,86 @@
+[
+{
+  "directory": "C:/laragon/www/SuperSmashBros/MiJuego/build",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/laragon/www/SuperSmashBros/MiJuego/src -IC:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\main.cpp.obj -c C:\\laragon\\www\\SuperSmashBros\\MiJuego\\src\\main.cpp",
+  "file": "C:/laragon/www/SuperSmashBros/MiJuego/src/main.cpp",
+  "output": "C:/laragon/www/SuperSmashBros/MiJuego/build/CMakeFiles/PlatformFighterBase.dir/src/main.cpp.obj"
+},
+{
+  "directory": "C:/laragon/www/SuperSmashBros/MiJuego/build",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/laragon/www/SuperSmashBros/MiJuego/src -IC:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\gm\\game.cpp.obj -c C:\\laragon\\www\\SuperSmashBros\\MiJuego\\src\\gm\\game.cpp",
+  "file": "C:/laragon/www/SuperSmashBros/MiJuego/src/gm/game.cpp",
+  "output": "C:/laragon/www/SuperSmashBros/MiJuego/build/CMakeFiles/PlatformFighterBase.dir/src/gm/game.cpp.obj"
+},
+{
+  "directory": "C:/laragon/www/SuperSmashBros/MiJuego/build",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/laragon/www/SuperSmashBros/MiJuego/src -IC:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\if\\sprite_renderer.cpp.obj -c C:\\laragon\\www\\SuperSmashBros\\MiJuego\\src\\if\\sprite_renderer.cpp",
+  "file": "C:/laragon/www/SuperSmashBros/MiJuego/src/if/sprite_renderer.cpp",
+  "output": "C:/laragon/www/SuperSmashBros/MiJuego/build/CMakeFiles/PlatformFighterBase.dir/src/if/sprite_renderer.cpp.obj"
+},
+{
+  "directory": "C:/laragon/www/SuperSmashBros/MiJuego/build",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/laragon/www/SuperSmashBros/MiJuego/src -IC:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\if\\hud.cpp.obj -c C:\\laragon\\www\\SuperSmashBros\\MiJuego\\src\\if\\hud.cpp",
+  "file": "C:/laragon/www/SuperSmashBros/MiJuego/src/if/hud.cpp",
+  "output": "C:/laragon/www/SuperSmashBros/MiJuego/build/CMakeFiles/PlatformFighterBase.dir/src/if/hud.cpp.obj"
+},
+{
+  "directory": "C:/laragon/www/SuperSmashBros/MiJuego/build",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/laragon/www/SuperSmashBros/MiJuego/src -IC:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\ft\\fighter.cpp.obj -c C:\\laragon\\www\\SuperSmashBros\\MiJuego\\src\\ft\\fighter.cpp",
+  "file": "C:/laragon/www/SuperSmashBros/MiJuego/src/ft/fighter.cpp",
+  "output": "C:/laragon/www/SuperSmashBros/MiJuego/build/CMakeFiles/PlatformFighterBase.dir/src/ft/fighter.cpp.obj"
+},
+{
+  "directory": "C:/laragon/www/SuperSmashBros/MiJuego/build",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/laragon/www/SuperSmashBros/MiJuego/src -IC:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\lb\\combat.cpp.obj -c C:\\laragon\\www\\SuperSmashBros\\MiJuego\\src\\lb\\combat.cpp",
+  "file": "C:/laragon/www/SuperSmashBros/MiJuego/src/lb/combat.cpp",
+  "output": "C:/laragon/www/SuperSmashBros/MiJuego/build/CMakeFiles/PlatformFighterBase.dir/src/lb/combat.cpp.obj"
+},
+{
+  "directory": "C:/laragon/www/SuperSmashBros/MiJuego/build",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/laragon/www/SuperSmashBros/MiJuego/src -IC:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\mp\\stage.cpp.obj -c C:\\laragon\\www\\SuperSmashBros\\MiJuego\\src\\mp\\stage.cpp",
+  "file": "C:/laragon/www/SuperSmashBros/MiJuego/src/mp/stage.cpp",
+  "output": "C:/laragon/www/SuperSmashBros/MiJuego/build/CMakeFiles/PlatformFighterBase.dir/src/mp/stage.cpp.obj"
+},
+{
+  "directory": "C:/laragon/www/SuperSmashBros/MiJuego/build",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/laragon/www/SuperSmashBros/MiJuego/src -IC:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\cm\\camera.cpp.obj -c C:\\laragon\\www\\SuperSmashBros\\MiJuego\\src\\cm\\camera.cpp",
+  "file": "C:/laragon/www/SuperSmashBros/MiJuego/src/cm/camera.cpp",
+  "output": "C:/laragon/www/SuperSmashBros/MiJuego/build/CMakeFiles/PlatformFighterBase.dir/src/cm/camera.cpp.obj"
+},
+{
+  "directory": "C:/laragon/www/SuperSmashBros/MiJuego/build",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\gcc.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src -fno-strict-aliasing -Werror=implicit-function-declaration -Werror=pointer-arith  -std=gnu99 -o libs\\raylib\\raylib\\CMakeFiles\\raylib.dir\\raudio.c.obj -c C:\\laragon\\www\\SuperSmashBros\\MiJuego\\libs\\raylib\\src\\raudio.c",
+  "file": "C:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src/raudio.c",
+  "output": "C:/laragon/www/SuperSmashBros/MiJuego/build/libs/raylib/raylib/CMakeFiles/raylib.dir/raudio.c.obj"
+},
+{
+  "directory": "C:/laragon/www/SuperSmashBros/MiJuego/build",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\gcc.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src -fno-strict-aliasing -Werror=implicit-function-declaration -Werror=pointer-arith  -std=gnu99 -o libs\\raylib\\raylib\\CMakeFiles\\raylib.dir\\rcore.c.obj -c C:\\laragon\\www\\SuperSmashBros\\MiJuego\\libs\\raylib\\src\\rcore.c",
+  "file": "C:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src/rcore.c",
+  "output": "C:/laragon/www/SuperSmashBros/MiJuego/build/libs/raylib/raylib/CMakeFiles/raylib.dir/rcore.c.obj"
+},
+{
+  "directory": "C:/laragon/www/SuperSmashBros/MiJuego/build",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\gcc.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src -fno-strict-aliasing -Werror=implicit-function-declaration -Werror=pointer-arith  -std=gnu99 -o libs\\raylib\\raylib\\CMakeFiles\\raylib.dir\\rmodels.c.obj -c C:\\laragon\\www\\SuperSmashBros\\MiJuego\\libs\\raylib\\src\\rmodels.c",
+  "file": "C:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src/rmodels.c",
+  "output": "C:/laragon/www/SuperSmashBros/MiJuego/build/libs/raylib/raylib/CMakeFiles/raylib.dir/rmodels.c.obj"
+},
+{
+  "directory": "C:/laragon/www/SuperSmashBros/MiJuego/build",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\gcc.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src -fno-strict-aliasing -Werror=implicit-function-declaration -Werror=pointer-arith  -std=gnu99 -o libs\\raylib\\raylib\\CMakeFiles\\raylib.dir\\rshapes.c.obj -c C:\\laragon\\www\\SuperSmashBros\\MiJuego\\libs\\raylib\\src\\rshapes.c",
+  "file": "C:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src/rshapes.c",
+  "output": "C:/laragon/www/SuperSmashBros/MiJuego/build/libs/raylib/raylib/CMakeFiles/raylib.dir/rshapes.c.obj"
+},
+{
+  "directory": "C:/laragon/www/SuperSmashBros/MiJuego/build",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\gcc.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src -fno-strict-aliasing -Werror=implicit-function-declaration -Werror=pointer-arith  -std=gnu99 -o libs\\raylib\\raylib\\CMakeFiles\\raylib.dir\\rtext.c.obj -c C:\\laragon\\www\\SuperSmashBros\\MiJuego\\libs\\raylib\\src\\rtext.c",
+  "file": "C:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src/rtext.c",
+  "output": "C:/laragon/www/SuperSmashBros/MiJuego/build/libs/raylib/raylib/CMakeFiles/raylib.dir/rtext.c.obj"
+},
+{
+  "directory": "C:/laragon/www/SuperSmashBros/MiJuego/build",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\gcc.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src -fno-strict-aliasing -Werror=implicit-function-declaration -Werror=pointer-arith  -std=gnu99 -o libs\\raylib\\raylib\\CMakeFiles\\raylib.dir\\rtextures.c.obj -c C:\\laragon\\www\\SuperSmashBros\\MiJuego\\libs\\raylib\\src\\rtextures.c",
+  "file": "C:/laragon/www/SuperSmashBros/MiJuego/libs/raylib/src/rtextures.c",
+  "output": "C:/laragon/www/SuperSmashBros/MiJuego/build/libs/raylib/raylib/CMakeFiles/raylib.dir/rtextures.c.obj"
+}
+]

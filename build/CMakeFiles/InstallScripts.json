@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/laragon/www/SuperSmashBros/MiJuego/build/cmake_install.cmake",
+		"C:/laragon/www/SuperSmashBros/MiJuego/build/libs/raylib/cmake_install.cmake",
+		"C:/laragon/www/SuperSmashBros/MiJuego/build/libs/raylib/raylib/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
