@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/cmake_install.cmake",
+		"C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/libs/raylib/cmake_install.cmake",
+		"C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/libs/raylib/raylib/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

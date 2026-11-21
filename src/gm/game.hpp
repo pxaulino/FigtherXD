@@ -34,6 +34,7 @@ struct PlayerInputState
     bool jumpPressed = false;
     bool jumpReleased = false;
     bool attackPressed = false;
+    bool heavyPressed = false;
     bool specialPressed = false;
     bool shieldPressed = false;
     bool downReleased = false;
@@ -56,6 +57,7 @@ struct GameContext
     int controlsSelection = 0;
     int controlsScroll = 0;
     bool controlsCapturing = false;
+    ControlSettings controlsOriginal{};
     int controlsCaptureAction = -1;
     int controlsConflictAction = -1;
     int controlsConflictKey = KEY_NULL;

@@ -2,9 +2,17 @@
 
 #include <raylib.h>
 #include <algorithm>
+#include <cctype>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#define NOGDI
+#define NOUSER
+#include <windows.h>
+#endif
 
 namespace
 {
@@ -13,11 +21,15 @@ ControlSettings g_settings{};
 
 const std::array<const char*, kActionCount> kFieldNames = {
     "move_left", "move_right", "move_up", "move_down", "jump", "light_attack",
-    "heavy_attack", "special_attack", "dodge", "run", "grab", "pause"
+    "heavy_attack", "special_attack", "dodge", "run", "pause"
 };
 
 std::filesystem::path SettingsPath()
 {
+    if (const char* localAppData = std::getenv("LOCALAPPDATA"))
+        return std::filesystem::path(localAppData) / "FighterXD" / "config" / "controls.json";
+    if (const char* home = std::getenv("HOME"))
+        return std::filesystem::path(home) / ".config" / "FighterXD" / "controls.json";
     return std::filesystem::path(GetApplicationDirectory()) / "config" / "controls.json";
 }
 
@@ -29,13 +41,12 @@ int DefaultKey(ControlAction action)
     case ControlAction::MoveRight: return KEY_D;
     case ControlAction::AimUp: return KEY_W;
     case ControlAction::AimDown: return KEY_S;
-    case ControlAction::Jump: return KEY_SPACE;
+    case ControlAction::Jump: return KEY_UP;
     case ControlAction::LightAttack: return KEY_J;
     case ControlAction::HeavyAttack: return KEY_K;
     case ControlAction::Special: return KEY_I;
     case ControlAction::Dodge: return KEY_L;
     case ControlAction::Run: return KEY_LEFT_SHIFT;
-    case ControlAction::Grab: return KEY_G;
     case ControlAction::Pause: return KEY_P;
     default: return KEY_NULL;
     }
@@ -119,7 +130,8 @@ bool ValidSettings(const ControlSettings& settings)
     {
         if (!IsValidRebindKey(settings.keys[static_cast<std::size_t>(i)])) return false;
         for (int j = 0; j < i; ++j)
-            if (settings.keys[static_cast<std::size_t>(i)] == settings.keys[static_cast<std::size_t>(j)]) return false;
+            if (settings.keys[static_cast<std::size_t>(i)] == settings.keys[static_cast<std::size_t>(j)] &&
+                !AreControlsCompatible(static_cast<ControlAction>(i), static_cast<ControlAction>(j))) return false;
     }
     return true;
 }
@@ -140,7 +152,14 @@ void LoadControlSettings()
     std::ostringstream buffer;
     buffer << file.rdbuf();
     const std::string json = buffer.str();
-    if (json.find("\"version\"") == std::string::npos || json.find("1") == std::string::npos) return;
+    const auto versionField = json.find("\"version\"");
+    const auto versionColon = versionField == std::string::npos ? std::string::npos : json.find(':', versionField);
+    if (versionColon == std::string::npos) return;
+    const auto versionStart = json.find_first_not_of(" \t\r\n", versionColon + 1);
+    if (versionStart == std::string::npos ||
+        (json[versionStart] != '1' && json[versionStart] != '2') ||
+        (versionStart + 1 < json.size() && std::isdigit(static_cast<unsigned char>(json[versionStart + 1])))) return;
+    const int version = json[versionStart] - '0';
 
     ControlSettings candidate = g_settings;
     const std::string preset = FieldValue(json, "preset");
@@ -155,6 +174,20 @@ void LoadControlSettings()
         if (token.empty()) return;
         candidate.keys[static_cast<std::size_t>(i)] = TokenKey(token);
     }
+    if (version == 1 && candidate.keys[static_cast<int>(ControlAction::Jump)] == KEY_SPACE)
+    {
+        ControlSettings legacyDefaults{};
+        for (int i = 0; i < kActionCount; ++i)
+            legacyDefaults.keys[static_cast<std::size_t>(i)] = DefaultKey(static_cast<ControlAction>(i));
+        legacyDefaults.keys[static_cast<int>(ControlAction::Jump)] = KEY_SPACE;
+        const bool arrows = candidate.preset == MovementPreset::Arrows;
+        legacyDefaults.keys[static_cast<int>(ControlAction::MoveLeft)] = arrows ? KEY_LEFT : KEY_A;
+        legacyDefaults.keys[static_cast<int>(ControlAction::MoveRight)] = arrows ? KEY_RIGHT : KEY_D;
+        legacyDefaults.keys[static_cast<int>(ControlAction::AimUp)] = arrows ? KEY_UP : KEY_W;
+        legacyDefaults.keys[static_cast<int>(ControlAction::AimDown)] = arrows ? KEY_DOWN : KEY_S;
+        if (candidate.keys == legacyDefaults.keys)
+            candidate.keys[static_cast<int>(ControlAction::Jump)] = KEY_UP;
+    }
     if (ValidSettings(candidate)) g_settings = candidate;
 }
 
@@ -164,28 +197,53 @@ bool SaveControlSettings()
     std::error_code ec;
     std::filesystem::create_directories(SettingsPath().parent_path(), ec);
     if (ec) return false;
-    std::ofstream file(SettingsPath(), std::ios::trunc);
+    const std::filesystem::path destination = SettingsPath();
+    std::filesystem::path temporary = destination;
+    temporary += ".tmp";
+    std::ofstream file(temporary, std::ios::trunc);
     if (!file) return false;
     const char* preset = g_settings.preset == MovementPreset::Wasd ? "WASD" :
                          g_settings.preset == MovementPreset::Arrows ? "ARROWS" : "CUSTOM";
-    file << "{\n  \"version\": 1,\n  \"keyboard\": {\n    \"preset\": \"" << preset << "\",\n";
+    file << "{\n  \"version\": 2,\n  \"keyboard\": {\n    \"preset\": \"" << preset << "\",\n";
     for (int i = 0; i < kActionCount; ++i)
         file << "    \"" << kFieldNames[static_cast<std::size_t>(i)] << "\": \""
              << KeyToken(g_settings.keys[static_cast<std::size_t>(i)]) << "\""
              << (i + 1 == kActionCount ? "\n" : ",\n");
     file << "  }\n}\n";
-    return file.good();
+    file.flush();
+    if (!file.good()) return false;
+    file.close();
+#if defined(_WIN32)
+    if (!MoveFileExW(temporary.c_str(), destination.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
+    {
+        std::error_code cleanupError;
+        std::filesystem::remove(temporary, cleanupError);
+        return false;
+    }
+#else
+    std::filesystem::rename(temporary, destination, ec);
+    if (ec) return false;
+#endif
+    return true;
 }
 
-void SetMovementPreset(MovementPreset preset)
+bool SetMovementPreset(MovementPreset preset)
 {
-    g_settings.preset = preset;
-    if (preset == MovementPreset::Custom) return;
+    ControlSettings candidate = g_settings;
+    candidate.preset = preset;
+    if (preset == MovementPreset::Custom)
+    {
+        g_settings = candidate;
+        return true;
+    }
     const bool arrows = preset == MovementPreset::Arrows;
-    g_settings.keys[static_cast<int>(ControlAction::MoveLeft)] = arrows ? KEY_LEFT : KEY_A;
-    g_settings.keys[static_cast<int>(ControlAction::MoveRight)] = arrows ? KEY_RIGHT : KEY_D;
-    g_settings.keys[static_cast<int>(ControlAction::AimUp)] = arrows ? KEY_UP : KEY_W;
-    g_settings.keys[static_cast<int>(ControlAction::AimDown)] = arrows ? KEY_DOWN : KEY_S;
+    candidate.keys[static_cast<int>(ControlAction::MoveLeft)] = arrows ? KEY_LEFT : KEY_A;
+    candidate.keys[static_cast<int>(ControlAction::MoveRight)] = arrows ? KEY_RIGHT : KEY_D;
+    candidate.keys[static_cast<int>(ControlAction::AimUp)] = arrows ? KEY_UP : KEY_W;
+    candidate.keys[static_cast<int>(ControlAction::AimDown)] = arrows ? KEY_DOWN : KEY_S;
+    if (!ValidSettings(candidate)) return false;
+    g_settings = candidate;
+    return true;
 }
 
 ControlSettings& GetControlSettings() { return g_settings; }
@@ -196,8 +254,8 @@ bool IsControlReleased(ControlAction action) { return IsKeyReleased(GetControlKe
 
 const char* GetControlActionName(ControlAction action, bool spanish)
 {
-    static const char* es[kActionCount] = { "Mover izquierda", "Mover derecha", "Apuntar arriba", "Apuntar abajo", "Saltar", "Ataque ligero", "Ataque fuerte", "Ataque especial", "Esquivar", "Correr", "Agarrar / interactuar", "Pausar" };
-    static const char* en[kActionCount] = { "Move left", "Move right", "Aim up", "Aim down", "Jump", "Light attack", "Heavy attack", "Special attack", "Dodge", "Run", "Grab / interact", "Pause" };
+    static const char* es[kActionCount] = { "Mover izquierda", "Mover derecha", "Apuntar arriba", "Apuntar abajo", "Saltar", "Ataque ligero", "Ataque fuerte", "Ataque especial", "Esquivar", "Correr", "Pausar" };
+    static const char* en[kActionCount] = { "Move left", "Move right", "Aim up", "Aim down", "Jump", "Light attack", "Heavy attack", "Special attack", "Dodge", "Run", "Pause" };
     const int index = static_cast<int>(action);
     return spanish ? es[index] : en[index];
 }
@@ -216,4 +274,10 @@ bool IsValidRebindKey(int key)
     if (key == KEY_NULL || key == KEY_ESCAPE) return false;
     if ((key >= KEY_SPACE && key <= KEY_KB_MENU) || (key >= KEY_KP_0 && key <= KEY_KP_EQUAL)) return true;
     return false;
+}
+
+bool AreControlsCompatible(ControlAction first, ControlAction second)
+{
+    return (first == ControlAction::Jump && second == ControlAction::AimUp) ||
+           (first == ControlAction::AimUp && second == ControlAction::Jump);
 }

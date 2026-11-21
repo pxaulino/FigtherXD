@@ -1,0 +1,116 @@
+[
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -O3 -DNDEBUG -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\main.cpp.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\src\\main.cpp",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src/main.cpp",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/CMakeFiles/PlatformFighterBase.dir/src/main.cpp.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -O3 -DNDEBUG -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\gm\\game.cpp.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\src\\gm\\game.cpp",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src/gm/game.cpp",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/CMakeFiles/PlatformFighterBase.dir/src/gm/game.cpp.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -O3 -DNDEBUG -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\if\\sprite_renderer.cpp.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\src\\if\\sprite_renderer.cpp",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src/if/sprite_renderer.cpp",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/CMakeFiles/PlatformFighterBase.dir/src/if/sprite_renderer.cpp.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -O3 -DNDEBUG -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\if\\hud.cpp.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\src\\if\\hud.cpp",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src/if/hud.cpp",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/CMakeFiles/PlatformFighterBase.dir/src/if/hud.cpp.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -O3 -DNDEBUG -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\if\\menu_renderer.cpp.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\src\\if\\menu_renderer.cpp",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src/if/menu_renderer.cpp",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/CMakeFiles/PlatformFighterBase.dir/src/if/menu_renderer.cpp.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -O3 -DNDEBUG -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\ft\\fighter.cpp.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\src\\ft\\fighter.cpp",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src/ft/fighter.cpp",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/CMakeFiles/PlatformFighterBase.dir/src/ft/fighter.cpp.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -O3 -DNDEBUG -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\lb\\combat.cpp.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\src\\lb\\combat.cpp",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src/lb/combat.cpp",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/CMakeFiles/PlatformFighterBase.dir/src/lb/combat.cpp.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -O3 -DNDEBUG -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\mp\\stage.cpp.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\src\\mp\\stage.cpp",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src/mp/stage.cpp",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/CMakeFiles/PlatformFighterBase.dir/src/mp/stage.cpp.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -O3 -DNDEBUG -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\cm\\camera.cpp.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\src\\cm\\camera.cpp",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src/cm/camera.cpp",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/CMakeFiles/PlatformFighterBase.dir/src/cm/camera.cpp.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -O3 -DNDEBUG -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\ui\\ui_components.cpp.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\src\\ui\\ui_components.cpp",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src/ui/ui_components.cpp",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/CMakeFiles/PlatformFighterBase.dir/src/ui/ui_components.cpp.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -O3 -DNDEBUG -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\win32_icon.cpp.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\src\\win32_icon.cpp",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src/win32_icon.cpp",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/CMakeFiles/PlatformFighterBase.dir/src/win32_icon.cpp.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\c++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -O3 -DNDEBUG -Wall -Wextra -Wpedantic -o CMakeFiles\\PlatformFighterBase.dir\\src\\in\\controls.cpp.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\src\\in\\controls.cpp",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src/in/controls.cpp",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/CMakeFiles/PlatformFighterBase.dir/src/in/controls.cpp.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\windres.exe -O coff -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -I C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/src -I C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\app.rc CMakeFiles\\PlatformFighterBase.dir\\app.rc.obj",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/app.rc",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/CMakeFiles/PlatformFighterBase.dir/app.rc.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\gcc.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -fno-strict-aliasing -Werror=implicit-function-declaration -Werror=pointer-arith  -O3 -DNDEBUG -std=gnu99 -o libs\\raylib\\raylib\\CMakeFiles\\raylib.dir\\raudio.c.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\libs\\raylib\\src\\raudio.c",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src/raudio.c",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/libs/raylib/raylib/CMakeFiles/raylib.dir/raudio.c.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\gcc.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -fno-strict-aliasing -Werror=implicit-function-declaration -Werror=pointer-arith  -O3 -DNDEBUG -std=gnu99 -o libs\\raylib\\raylib\\CMakeFiles\\raylib.dir\\rcore.c.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\libs\\raylib\\src\\rcore.c",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src/rcore.c",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/libs/raylib/raylib/CMakeFiles/raylib.dir/rcore.c.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\gcc.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -fno-strict-aliasing -Werror=implicit-function-declaration -Werror=pointer-arith  -O3 -DNDEBUG -std=gnu99 -o libs\\raylib\\raylib\\CMakeFiles\\raylib.dir\\rmodels.c.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\libs\\raylib\\src\\rmodels.c",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src/rmodels.c",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/libs/raylib/raylib/CMakeFiles/raylib.dir/rmodels.c.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\gcc.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -fno-strict-aliasing -Werror=implicit-function-declaration -Werror=pointer-arith  -O3 -DNDEBUG -std=gnu99 -o libs\\raylib\\raylib\\CMakeFiles\\raylib.dir\\rshapes.c.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\libs\\raylib\\src\\rshapes.c",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src/rshapes.c",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/libs/raylib/raylib/CMakeFiles/raylib.dir/rshapes.c.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\gcc.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -fno-strict-aliasing -Werror=implicit-function-declaration -Werror=pointer-arith  -O3 -DNDEBUG -std=gnu99 -o libs\\raylib\\raylib\\CMakeFiles\\raylib.dir\\rtext.c.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\libs\\raylib\\src\\rtext.c",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src/rtext.c",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/libs/raylib/raylib/CMakeFiles/raylib.dir/rtext.c.obj"
+},
+{
+  "directory": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls",
+  "command": "C:\\Users\\danie\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe\\mingw64\\bin\\gcc.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP_RGFW -IC:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src -fno-strict-aliasing -Werror=implicit-function-declaration -Werror=pointer-arith  -O3 -DNDEBUG -std=gnu99 -o libs\\raylib\\raylib\\CMakeFiles\\raylib.dir\\rtextures.c.obj -c C:\\Users\\danie\\OneDrive\\Desktop\\Code\\FigtherXD\\libs\\raylib\\src\\rtextures.c",
+  "file": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/libs/raylib/src/rtextures.c",
+  "output": "C:/Users/danie/OneDrive/Desktop/Code/FigtherXD/.build-controls/libs/raylib/raylib/CMakeFiles/raylib.dir/rtextures.c.obj"
+}
+]
